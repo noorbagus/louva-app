@@ -111,75 +111,86 @@ export default function CustomerQRPage() {
       <div className="max-w-md mx-auto px-5 py-6 space-y-6">
         {/* Premium Loyalty Card */}
         <div className="relative">
-          {/* Card with vibrant gradient effect */}
-          <div className={`relative rounded-2xl p-5 overflow-hidden transition-all duration-500 ${
-            customer.membership_level === 'Gold'
-              ? 'bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 shadow-2xl shadow-purple-500/30'
-              : customer.membership_level === 'Silver'
-              ? 'bg-gradient-to-br from-blue-400 via-cyan-500 to-teal-600 shadow-2xl shadow-cyan-500/30'
-              : 'bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 shadow-2xl shadow-red-500/30'
-          }`}>
+          {/* Card with blue glassmorphism design */}
+          <div className="relative rounded-2xl p-4 overflow-hidden transition-all duration-500 shadow-2xl"
+               style={{
+                 background: 'linear-gradient(135deg, rgba(74, 139, 194, 0.9) 0%, rgba(90, 155, 212, 0.85) 50%, rgba(147, 190, 225, 0.8) 100%)',
+                 backdropFilter: 'blur(20px)',
+                 WebkitBackdropFilter: 'blur(20px)',
+                 boxShadow: '0 20px 40px rgba(74, 139, 194, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
+               }}>
             {/* Shimmer effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-pulse"></div>
 
-            {/* Card pattern */}
-            <div className="absolute inset-0 opacity-10">
+            {/* Card pattern with custom colors */}
+            <div className="absolute inset-0 opacity-20">
               <div className="absolute top-2 right-2 w-24 h-24 border-4 border-white/30 rounded-full"></div>
               <div className="absolute bottom-4 left-4 w-16 h-16 border-4 border-white/20 rounded-full"></div>
+              <div className="absolute top-1/2 left-1/3 w-8 h-8 border-2 border-white/25 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
+
+            {/* Glassmorphism decorative elements */}
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-20"
+                 style={{
+                   background: 'radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%)'
+                 }}>
+            </div>
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full opacity-15"
+                 style={{
+                   background: 'radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%)'
+                 }}>
             </div>
 
             {/* Card content */}
             <div className="relative z-10">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl overflow-hidden border-2 border-white/30">
-                  <img
-                    src="https://images.pexels.com/photos/4921066/pexels-photo-4921066.jpeg"
-                    alt={customer.name}
-                    className="w-full h-full object-cover"
-                  />
+              {/* Header with name and email */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/25 backdrop-blur-sm rounded-lg overflow-hidden border-2 border-white/40 shadow-lg">
+                    <img
+                      src="https://images.pexels.com/photos/4921066/pexels-photo-4921066.jpeg"
+                      alt={customer.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white drop-shadow-lg">
+                      {customer.name}
+                    </h2>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-white/90 text-xs font-medium mb-1">MEMBER</div>
-                  <div className={`text-lg font-bold ${
-                    customer.membership_level === 'Gold' ? 'text-white' :
-                    customer.membership_level === 'Silver' ? 'text-gray-800' :
-                    'text-white'
-                  }`}>
-                    {customer.membership_level.toUpperCase()}
-                  </div>
+                  <div className="text-white/95 text-xs font-medium mb-1 tracking-wide">GOLD</div>
+                  <p className="text-sm text-white/90">
+                    {customer.email}
+                  </p>
                 </div>
               </div>
 
-              {/* Customer name */}
-              <h2 className="text-2xl font-bold mb-1 text-white">
-                {customer.name}
-              </h2>
-              <p className="text-sm mb-4 text-white/80">
-                {customer.email}
-              </p>
-
-              {/* Points Section */}
-              <div className="mb-4">
-                <div className="text-xs font-medium mb-1 text-white/90">
+              {/* Points Section with glassmorphism effect */}
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 mb-4 border border-white/20"
+                   style={{
+                     backdropFilter: 'blur(10px)',
+                     WebkitBackdropFilter: 'blur(10px)'
+                   }}>
+                <div className="text-xs font-medium mb-1 text-white/90 tracking-wider">
                   AVAILABLE POINTS
                 </div>
                 <div className="text-4xl font-bold text-white">
                   {customer.total_points?.toLocaleString('id-ID') || '0'}
                 </div>
-                <div className="text-xs mt-1 text-white/70">
-                  {customer.membership_level === 'Gold' ? '✨ Elite Status' :
-                   customer.membership_level === 'Silver' ? '⭐ Premium Member' :
-                   '🎯 Rising Star'}
+                <div className="text-xs mt-1 text-white/80 flex items-center gap-1">
+                  <span className="inline-block w-1 h-1 bg-white rounded-full"></span>
+                  ✨ Elite Status
                 </div>
               </div>
 
               {/* Card footer */}
               <div className="flex items-center justify-between">
-                <div className="text-xs text-white/60">
+                <div className="text-xs text-white/80 font-medium">
                   LOUVA BEAUTY STUDIO
                 </div>
-                <div className="text-xs text-white/60">
+                <div className="text-xs text-white/80 font-medium">
                   VALID THRU 12/25
                 </div>
               </div>
@@ -189,21 +200,13 @@ export default function CustomerQRPage() {
 
         {/* Card Features */}
         <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-2xl p-5">
-          <h3 className={`text-lg font-semibold mb-4 ${
-            customer.membership_level === 'Gold' ? 'text-purple-600' :
-            customer.membership_level === 'Silver' ? 'text-cyan-600' :
-            'text-red-600'
-          }`}>
+          <h3 className="text-lg font-semibold mb-4 text-[var(--text-primary)]">
             {customer.membership_level} Member Perks
           </h3>
 
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                customer.membership_level === 'Gold' ? 'bg-purple-100 text-purple-600' :
-                customer.membership_level === 'Silver' ? 'bg-cyan-100 text-cyan-600' :
-                'bg-red-100 text-red-600'
-              }`}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--primary)]/10 text-[var(--primary)]">
                 <span className="material-icons text-lg">stars</span>
               </div>
               <div>
@@ -217,11 +220,7 @@ export default function CustomerQRPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                customer.membership_level === 'Gold' ? 'bg-purple-100 text-purple-600' :
-                customer.membership_level === 'Silver' ? 'bg-cyan-100 text-cyan-600' :
-                'bg-red-100 text-red-600'
-              }`}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--primary)]/10 text-[var(--primary)]">
                 <span className="material-icons text-lg">redeem</span>
               </div>
               <div>
@@ -235,11 +234,7 @@ export default function CustomerQRPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                customer.membership_level === 'Gold' ? 'bg-purple-100 text-purple-600' :
-                customer.membership_level === 'Silver' ? 'bg-cyan-100 text-cyan-600' :
-                'bg-red-100 text-red-600'
-              }`}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--primary)]/10 text-[var(--primary)]">
                 <span className="material-icons text-lg">local_offer</span>
               </div>
               <div>
@@ -262,11 +257,7 @@ export default function CustomerQRPage() {
             </h3>
             <div className="w-full bg-[var(--surface)] rounded-full h-3 mb-2">
               <div
-                className={`h-3 rounded-full transition-all duration-700 ${
-                  customer.membership_level === 'Bronze'
-                    ? 'bg-gradient-to-r from-red-400 to-red-500'
-                    : 'bg-gradient-to-r from-cyan-400 to-cyan-500'
-                }`}
+                className="h-3 rounded-full transition-all duration-700 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)]"
                 style={{
                   width: `${Math.min(
                     customer.membership_level === 'Bronze'
@@ -286,24 +277,15 @@ export default function CustomerQRPage() {
         )}
 
         {/* QR Button */}
-        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 w-[calc(375px-40px)] max-w-[335px]">
-          <button
+        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-2xl p-5">
+          <Button
             onClick={handleOpenQR}
-            className={`w-full py-4 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-3 ${
-              customer.membership_level === 'Gold'
-                ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-purple-500/30 hover:shadow-purple-500/40'
-                : customer.membership_level === 'Silver'
-                ? 'bg-gradient-to-r from-cyan-500 to-teal-600 text-white shadow-cyan-500/30 hover:shadow-cyan-500/40'
-                : 'bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-red-500/30 hover:shadow-red-500/40'
-            }`}
+            size="lg"
+            className="w-full shadow-lg hover:shadow-xl"
           >
             <span className="material-icons text-lg">qr_code_2</span>
-            {customer.membership_level === 'Gold'
-              ? 'Unlock VIP Check-In'
-              : customer.membership_level === 'Silver'
-              ? 'Show Premium QR Code'
-              : 'Earn Points Now!'}
-          </button>
+            Show QR Code
+          </Button>
 
           <p className="text-center text-xs text-[var(--text-muted)] mt-3">
             {customer.membership_level === 'Gold'

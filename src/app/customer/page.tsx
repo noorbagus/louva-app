@@ -45,13 +45,13 @@ export default function CustomerHomePage() {
           const profileData = await profileResponse.json()
 
           // Get points data if available
-          let pointsData = {}
+          let pointsData: any = {}
           if (pointsResponse.ok) {
             pointsData = await pointsResponse.json()
           }
 
-          const newPoints = profileData.total_points || pointsData.current_points || 0
-          const newMembershipLevel = profileData.membership_level || pointsData.membership_level ||
+          const newPoints = profileData.total_points || (pointsData as any)?.current_points || 0
+          const newMembershipLevel = profileData.membership_level || (pointsData as any)?.membership_level ||
             (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
 
           const mappedCustomer: Customer = {
@@ -62,8 +62,8 @@ export default function CustomerHomePage() {
             email: profileData.email || 'sari.dewi@example.com',
             total_points: newPoints,
             membership_level: newMembershipLevel,
-            total_visits: profileData.total_visits || pointsData.total_visits || 0,
-            total_spent: profileData.total_spent || pointsData.total_spent || 0,
+            total_visits: profileData.total_visits || (pointsData as any)?.total_visits || 0,
+            total_spent: profileData.total_spent || (pointsData as any)?.total_spent || 0,
             qr_code: profileData.qr_code || `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
             created_at: profileData.created_at || new Date().toISOString(),
             updated_at: profileData.updated_at || new Date().toISOString(),
