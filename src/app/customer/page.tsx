@@ -2,52 +2,111 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader } from '@/components/shared/Card'
-import { Button } from '@/components/shared/Button'
-import { PointsDisplay } from '@/components/customer/PointsDisplay'
-import { ServiceGrid } from '@/components/customer/ServiceGrid'
-import { Badge } from '@/components/shared/Badge'
-import { formatCurrency, formatDate } from '@/lib/utils'
-import { DEFAULT_SERVICES, SERVICE_CATEGORIES } from '@/lib/constants'
-import { customerAPI } from '@/lib/api'
-import type { Customer, Transaction } from '@/lib/types'
+import Image from 'next/image'
+import type { Customer } from '@/lib/types'
+
+const FIXED_CUSTOMER_ID = '550e8400-e29b-41d4-a716-446655440001'
+
+// Banner data
+const banners = [
+  {
+    title: 'Weekend Special',
+    subtitle: 'Double points untuk semua hair treatments setiap weekend',
+    image: 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=600'
+  },
+  {
+    title: 'Hair Color Promo',
+    subtitle: 'Gratis konsultasi warna untuk semua layanan hair color',
+    image: 'https://images.pexels.com/photos/3993311/pexels-photo-3993311.jpeg?auto=compress&cs=tinysrgb&w=600'
+  },
+  {
+    title: 'Nail Art Special', 
+    subtitle: 'Diskon 30% untuk semua nail art design premium',
+    image: 'https://images.pexels.com/photos/887352/pexels-photo-887352.jpeg?auto=compress&cs=tinysrgb&w=600'
+  }
+]
 
 export default function CustomerHomePage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
-  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentBanner, setCurrentBanner] = useState(0)
 
+  // Initial load effect
   useEffect(() => {
     const loadCustomerData = async () => {
       try {
         setLoading(true)
-        const customerData = await customerAPI.getProfile()
-        const mappedCustomer: Customer = {
-          ...customerData,
-          name: customerData.full_name,
-          customer_id: customerData.id,
-          last_visit: customerData.updated_at
-        }
-        setCustomer(mappedCustomer)
 
-        const transactionsData = await customerAPI.getTransactions()
-        setRecentTransactions(transactionsData.slice(0, 3))
+        // Fetch customer profile and points
+        const profileResponse = await fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
+        const pointsResponse = await fetch(`/api/user/points?userId=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json()
+
+          // Get points data if available
+          let pointsData = {}
+          if (pointsResponse.ok) {
+            pointsData = await pointsResponse.json()
+          }
+
+          const newPoints = profileData.total_points || pointsData.current_points || 0
+          const newMembershipLevel = profileData.membership_level || pointsData.membership_level ||
+            (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
+
+          const mappedCustomer: Customer = {
+            id: FIXED_CUSTOMER_ID,
+            customer_id: FIXED_CUSTOMER_ID,
+            name: profileData.full_name || 'Sari Dewi',
+            phone: profileData.phone || '081234567890',
+            email: profileData.email || 'sari.dewi@example.com',
+            total_points: newPoints,
+            membership_level: newMembershipLevel,
+            total_visits: profileData.total_visits || pointsData.total_visits || 0,
+            total_spent: profileData.total_spent || pointsData.total_spent || 0,
+            qr_code: profileData.qr_code || `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
+            created_at: profileData.created_at || new Date().toISOString(),
+            updated_at: profileData.updated_at || new Date().toISOString(),
+            last_visit: profileData.updated_at || new Date().toISOString()
+          }
+
+          setCustomer(mappedCustomer)
+        } else {
+          // Set fallback data
+          const fallbackCustomer: Customer = {
+            id: FIXED_CUSTOMER_ID,
+            customer_id: FIXED_CUSTOMER_ID,
+            name: 'Sari Dewi',
+            phone: '081234567890',
+            email: 'sari.dewi@example.com',
+            total_points: 0,
+            membership_level: 'Bronze',
+            total_visits: 0,
+            total_spent: 0,
+            qr_code: `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_visit: new Date().toISOString()
+          }
+          setCustomer(fallbackCustomer)
+        }
       } catch (err) {
-        // Fallback data
+        console.error('Error loading customer data:', err)
+        // Set fallback data
         const fallbackCustomer: Customer = {
-          id: '550e8400-e29b-41d4-a716-446655440001',
-          customer_id: '550e8400-e29b-41d4-a716-446655440001',
+          id: FIXED_CUSTOMER_ID,
+          customer_id: FIXED_CUSTOMER_ID,
           name: 'Sari Dewi',
           phone: '081234567890',
           email: 'sari.dewi@example.com',
-          total_points: 2450,
-          membership_level: 'Silver',
-          total_visits: 15,
-          total_spent: 3200000,
-          qr_code: 'LOUVA_SD001_2024',
-          created_at: '2025-12-17T14:04:08.068454Z',
-          updated_at: '2025-12-17T14:04:08.068454Z',
-          last_visit: '2025-12-17T14:04:08.068454Z'
+          total_points: 0,
+          membership_level: 'Bronze',
+          total_visits: 0,
+          total_spent: 0,
+          qr_code: `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          last_visit: new Date().toISOString()
         }
         setCustomer(fallbackCustomer)
       } finally {
@@ -56,6 +115,48 @@ export default function CustomerHomePage() {
     }
 
     loadCustomerData()
+
+    // Set up background refresh - much less frequent
+    const refreshInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        // Silent background refresh without loading state
+        fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
+          .then(res => {
+            if (res.ok) {
+              return res.json()
+            }
+            throw new Error('Failed to fetch')
+          })
+          .then(profileData => {
+            const newPoints = profileData.total_points || 0
+            const newMembershipLevel = profileData.membership_level ||
+              (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
+
+            setCustomer(prev => prev ? {
+              ...prev,
+              total_points: newPoints,
+              membership_level: newMembershipLevel,
+              total_visits: profileData.total_visits || prev.total_visits,
+              total_spent: profileData.total_spent || prev.total_spent,
+              updated_at: profileData.updated_at || prev.updated_at,
+              last_visit: profileData.updated_at || prev.last_visit
+            } : prev)
+          })
+          .catch(err => console.error('Background refresh error:', err))
+      }
+    }, 60000) // Every minute only
+
+    return () => {
+      clearInterval(refreshInterval)
+    }
+  }, [])
+
+  // Auto-rotate banners
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length)
+    }, 4000)
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {
@@ -74,15 +175,19 @@ export default function CustomerHomePage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden sticky top-0 z-10">
         <div className="absolute top-0 right-[-50px] w-[120px] h-[120px] bg-white/10 rounded-full transform translate-x-5 -translate-y-5"></div>
         
         <div className="max-w-md mx-auto px-5 py-6 relative z-10">
           {/* User Info */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/20 border-2 border-white/30 rounded-xl flex items-center justify-center text-xl backdrop-blur-lg">
-                <i className="material-icons">person</i>
+              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/30 backdrop-blur-lg">
+                <img
+                  src="https://images.pexels.com/photos/4921066/pexels-photo-4921066.jpeg"
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <h3 className="text-lg font-semibold mb-1">{customer.name}</h3>
@@ -91,8 +196,14 @@ export default function CustomerHomePage() {
                 </div>
               </div>
             </div>
-            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center font-bold text-base backdrop-blur-lg">
-              L
+            <div className="flex items-center justify-center">
+              <img 
+                src="/images/louva-putih.png" 
+                alt="Louva Logo" 
+                width={82} 
+                height={54}
+                className="object-contain"
+              />
             </div>
           </div>
 
@@ -103,7 +214,7 @@ export default function CustomerHomePage() {
               <span className="text-xs opacity-90 font-medium">points</span>
             </div>
             <Link href="/customer/services">
-              <button className="bg-[var(--secondary)] text-white px-4 py-2 rounded-full font-semibold text-xs">
+              <button className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white px-4 py-2 rounded-full font-semibold text-xs shadow-lg">
                 Services
               </button>
             </Link>
@@ -111,35 +222,103 @@ export default function CustomerHomePage() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-5 py-5 space-y-5">
-        {/* Promo Banner */}
-        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 relative overflow-hidden">
-          <div>
-            <h3 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">Weekend Special</h3>
-            <p className="text-sm text-[var(--text-secondary)]">Double points untuk semua hair treatments setiap weekend</p>
-          </div>
-          <div className="absolute right-[-20px] top-[-20px] w-[100px] h-[100px] bg-[var(--primary)]/10 rounded-full"></div>
-        </div>
+      <div className="max-w-md mx-auto px-5 py-6 space-y-6">
+        {/* Rotating Promo Banners */}
+        <div className="relative">
+          <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl overflow-hidden relative">
+            <div 
+              className="h-40 bg-cover bg-center relative transition-all duration-700"
+              style={{
+                backgroundImage: `url(${banners[currentBanner].image})`,
+              }}
+            >
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30"></div>
+              
+              {/* Content */}
+              <div className="relative z-10 p-5 h-full flex flex-col justify-center">
+                <h3 className="text-lg font-semibold mb-2 text-white drop-shadow-lg transition-all duration-500">
+                  {banners[currentBanner].title}
+                </h3>
+                <p className="text-sm text-white/90 drop-shadow-md transition-all duration-500">
+                  {banners[currentBanner].subtitle}
+                </p>
+              </div>
+            </div>
 
-        {/* Badges Section */}
-        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5">
-          <div className="flex items-center gap-3">
-            <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
-            <div>
-              <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Badges & Achievements</h3>
-              <p className="text-sm text-[var(--text-secondary)]">Collect badges and unlock more rewards</p>
+            {/* Dots indicator */}
+            <div className="absolute bottom-3 right-3 flex gap-1.5">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentBanner(index)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    index === currentBanner 
+                      ? 'bg-white' 
+                      : 'bg-white/40 hover:bg-white/60'
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 text-center">
-          <h3 className="text-base font-semibold mb-4 text-[var(--text-primary)]">Ready for your appointment?</h3>
-          <Link href="/customer/qr">
-            <button className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white w-full py-4 rounded-xl font-semibold text-base shadow-[0_4px_15px_rgba(74,139,194,0.3)] hover:shadow-[0_8px_25px_rgba(74,139,194,0.4)] hover:-translate-y-0.5 transition-all duration-300">
-              Show QR Code
-            </button>
+        {/* Badges Section */}
+        <div className="mt-8">
+          <Link href="/customer/rewards">
+            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 cursor-pointer hover:bg-[var(--surface-lighter)] transition-all">
+              <div className="flex items-center gap-3">
+                <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
+                <div>
+                  <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Badges & Mission</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">Collect badges and unlock more rewards</p>
+                </div>
+              </div>
+            </div>
           </Link>
+        </div>
+
+        {/* Membership Progress */}
+        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <i className="material-icons text-2xl text-[var(--primary)]">stars</i>
+            <div>
+              <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Membership Progress</h3>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {customer.membership_level === 'Bronze' && `${Math.max(0, 500 - customer.total_points)} poin lagi menuju Silver`}
+                {customer.membership_level === 'Silver' && `${Math.max(0, 1000 - customer.total_points)} poin lagi menuju Gold`}
+                {customer.membership_level === 'Gold' && 'Selamat! Anda sudah mencapai level tertinggi'}
+              </p>
+            </div>
+          </div>
+          
+          {customer.membership_level !== 'Gold' && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--text-secondary)]">Current: {customer.membership_level}</span>
+                <span className="text-[var(--text-primary)] font-medium">
+                  {customer.membership_level === 'Bronze' ? 'Next: Silver' : 'Next: Gold'}
+                </span>
+              </div>
+              <div className="w-full bg-[var(--surface)] rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] h-2 rounded-full transition-all duration-700"
+                  style={{
+                    width: `${Math.min(
+                      customer.membership_level === 'Bronze'
+                        ? Math.min((customer.total_points / 500) * 100, 100)
+                        : Math.min(((customer.total_points - 500) / 500) * 100, 100),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-[var(--text-secondary)]">
+                <span>{customer.membership_level === 'Bronze' ? '0' : '500'}</span>
+                <span>{customer.membership_level === 'Bronze' ? '500' : '1000'}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

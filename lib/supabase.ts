@@ -191,6 +191,113 @@ export interface Database {
           created_at?: string
         }
       }
+      transaction_services: {
+        Row: {
+          id: string
+          transaction_id: string
+          service_id: string
+          price: number
+          points_earned: number
+        }
+        Insert: {
+          id?: string
+          transaction_id: string
+          service_id: string
+          price: number
+          points_earned: number
+        }
+        Update: {
+          id?: string
+          transaction_id?: string
+          service_id?: string
+          price?: number
+          points_earned?: number
+        }
+      }
+      points_history: {
+        Row: {
+          id: string
+          user_id: string
+          transaction_id: string | null
+          points_change: number
+          balance_after: number
+          type: string
+          description: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          transaction_id?: string | null
+          points_change: number
+          balance_after: number
+          type: string
+          description?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          transaction_id?: string | null
+          points_change?: number
+          balance_after?: number
+          type?: string
+          description?: string | null
+          created_at?: string
+        }
+      }
+      rewards: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          points_required: number
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          points_required: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          points_required?: number
+          is_active?: boolean
+          created_at?: string
+        }
+      }
+      reward_redemptions: {
+        Row: {
+          id: string
+          user_id: string
+          reward_id: string
+          points_used: number
+          status: string
+          redeemed_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          reward_id: string
+          points_used: number
+          status?: string
+          redeemed_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          reward_id?: string
+          points_used?: number
+          status?: string
+          redeemed_at?: string
+        }
+      }
     }
   }
 }

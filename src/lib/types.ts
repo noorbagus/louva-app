@@ -64,7 +64,8 @@ export interface Transaction {
 }
 
 export interface Reward {
-  reward_id: string
+  id: string
+  reward_id?: string
   name: string
   description: string
   points_required: number
@@ -110,13 +111,63 @@ export interface PaginatedResponse<T = any> {
 
 export interface DashboardStats {
   totalCustomers: number
+  todayCustomers: number
   todayRevenue: number
   monthlyRevenue: number
   averageRating: number
+  satisfactionRate: number
   recentTransactions: Transaction[]
   topServices: Array<{
     service: Service
     count: number
     revenue: number
   }>
+  revenueGrowth: number
+  customerGrowth: number
+}
+
+export interface PaymentMethodConfig {
+  id: string
+  name: string
+  type: 'cash' | 'qris' | 'debit' | 'credit' | 'transfer'
+  bank?: string
+  icon: string
+  is_active: boolean
+  created_at: string
+}
+
+export interface SelectedService {
+  id: string
+  name: string
+  price: number
+  points: number
+}
+
+export interface TransactionFormData {
+  customerId: string
+  services: SelectedService[]
+  paymentMethodId: string
+  notes?: string
+}
+
+export interface NotificationData {
+  id: string
+  title: string
+  content: string
+  targetAudience: 'all' | 'silver' | 'gold' | 'inactive'
+  sentAt: string
+  deliveredCount: number
+}
+
+export interface CustomerAnalytics {
+  totalCustomers: number
+  activeCustomers: number
+  newCustomers: number
+  retentionRate: number
+  averageSpend: number
+  membershipDistribution: {
+    gold: { count: number; percentage: number }
+    silver: { count: number; percentage: number }
+    bronze: { count: number; percentage: number }
+  }
 }

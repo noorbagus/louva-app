@@ -56,7 +56,7 @@ export default function CustomerServicesPage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white">
+      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white sticky top-0 z-10">
         <div className="max-w-md mx-auto px-5 py-6">
           <div className="flex items-center gap-4">
             <button 
@@ -70,7 +70,7 @@ export default function CustomerServicesPage() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-5 py-6 space-y-6">
+      <div className="max-w-md mx-auto px-5 py-6 space-y-6 pb-28">
         {/* Category Filter */}
         <div className="grid grid-cols-4 gap-3">
           {categories.map((category) => (

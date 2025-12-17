@@ -1,14 +1,14 @@
 import { Metadata } from 'next'
-import { BottomNav } from '@/components/customer/BottomNav'
+import { AdminBottomNav } from '@/components/admin/AdminBottomNav'
 
 export const metadata: Metadata = {
-  title: 'Louva Salon - Customer App',
-  description: 'Aplikasi loyalitas pelanggan Louva Salon',
+  title: 'Louva Salon - Admin App',
+  description: 'Aplikasi manajemen salon Louva',
   viewport: 'width=375, initial-scale=1.0',
   themeColor: '#4A8BC2'
 }
 
-export default function CustomerLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
@@ -22,7 +22,7 @@ export default function CustomerLayout({
         </main>
 
         {/* Bottom Navigation */}
-        <BottomNav />
+        <AdminBottomNav />
       </div>
     </div>
   )

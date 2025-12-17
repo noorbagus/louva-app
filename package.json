@@ -11,6 +11,8 @@
   "dependencies": {
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.88.0",
+    "@types/web-bluetooth": "^0.0.21",
+    "@zxing/library": "^0.21.3",
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
     "dotenv": "^17.2.3",

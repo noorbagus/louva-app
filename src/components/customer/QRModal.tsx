@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import { Modal } from '@/components/shared/Modal'
 import { Button } from '@/components/shared/Button'
 import { Customer } from '@/lib/types'
-import { generateQRData } from '@/lib/utils'
+import { generateQRData, isQRValid, formatDateTime } from '@/lib/utils'
 import { Download, RefreshCw } from 'lucide-react'
 
 interface QRModalProps {
@@ -16,10 +16,25 @@ interface QRModalProps {
 
 export function QRModal({ isOpen, onClose, customer }: QRModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [currentQRData, setCurrentQRData] = useState<string>('')
+  const [qrTimestamp, setQrTimestamp] = useState<Date>(new Date())
+  const [timeRemaining, setTimeRemaining] = useState<number>(300) // 5 minutes in seconds
 
   useEffect(() => {
-    if (isOpen && canvasRef.current) {
+    if (isOpen) {
       generateQR()
+      // Start countdown timer
+      const timer = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            generateQR() // Refresh QR when timer reaches 0
+            return 300 // Reset to 5 minutes
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      return () => clearInterval(timer)
     }
   }, [isOpen, customer])
 
@@ -27,6 +42,9 @@ export function QRModal({ isOpen, onClose, customer }: QRModalProps) {
     if (!canvasRef.current) return
 
     const qrData = generateQRData(customer.customer_id)
+    setCurrentQRData(qrData)
+    setQrTimestamp(new Date())
+    setTimeRemaining(300) // Reset timer
 
     try {
       await QRCode.toCanvas(canvasRef.current, qrData, {
@@ -65,9 +83,10 @@ export function QRModal({ isOpen, onClose, customer }: QRModalProps) {
           <p className="text-dark-300 mb-2">
             Scan to earn points with your purchase
           </p>
-          <p className="text-xs text-dark-500">
-            QR code refreshes every 5 minutes for security
-          </p>
+          <div className="flex items-center justify-center gap-2 text-xs text-dark-500">
+            <span className="material-icons text-base">timer</span>
+            <span>Auto-refresh in {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
+          </div>
         </div>
 
         <div className="qr-container p-6 bg-white rounded-lg">
@@ -96,8 +115,12 @@ export function QRModal({ isOpen, onClose, customer }: QRModalProps) {
               <strong className="text-dark-100">{customer.total_points.toLocaleString('id-ID')}</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-dark-400">Valid until:</span>
-              <strong className="text-dark-100">Dec 31, 2025</strong>
+              <span className="text-dark-400">Generated:</span>
+              <strong className="text-dark-100">{formatDateTime(qrTimestamp)}</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-dark-400">Expires in:</span>
+              <strong className="text-dark-100">{Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</strong>
             </div>
           </div>
         </div>

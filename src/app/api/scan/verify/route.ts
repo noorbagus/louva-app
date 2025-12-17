@@ -9,9 +9,11 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { qr_code } = body
+    const { qr_code, qrCode } = body // Support both naming conventions
 
-    if (!qr_code) {
+    const qrData = qr_code || qrCode
+
+    if (!qrData) {
       return NextResponse.json(
         { error: 'QR code is required' },
         { status: 400 }
@@ -22,19 +24,56 @@ export async function POST(request: NextRequest) {
     let customer = null
     let error = null
 
-    // Direct lookup for static QR codes
-    const { data: directCustomer, error: directError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('qr_code', qr_code)
-      .single()
+    // Try JSON format first (new dynamic QR)
+    try {
+      const parsed = JSON.parse(qrData)
+      if (parsed.type === 'loyalty' && parsed.customerId && parsed.timestamp) {
+        // Check if QR is expired (5 minutes)
+        const qrTimestamp = new Date(parsed.timestamp)
+        const now = new Date()
+        const diffMs = now.getTime() - qrTimestamp.getTime()
+        const diffMinutes = Math.floor(diffMs / 60000)
 
-    if (directCustomer) {
-      customer = directCustomer
-    } else {
+        if (diffMinutes > 5) {
+          return NextResponse.json(
+            { error: 'QR code has expired. Please generate a new one.' },
+            { status: 400 }
+          )
+        }
+
+        // Find customer by customer ID
+        const { data: jsonCustomer, error: jsonError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', parsed.customerId)
+          .single()
+
+        if (jsonCustomer && !jsonError) {
+          customer = jsonCustomer
+        }
+      }
+    } catch {
+      // Not JSON, try other formats
+    }
+
+    // Direct lookup for static QR codes
+    if (!customer) {
+      const { data: directCustomer, error: directError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('qr_code', qrData)
+        .single()
+
+      if (directCustomer) {
+        customer = directCustomer
+      }
+    }
+
+    // Try timestamp-based QR format (LOUVA_[USER_ID]_[TIMESTAMP])
+    if (!customer) {
       // Try timestamp-based QR format (LOUVA_[USER_ID]_[TIMESTAMP])
       const qrPattern = /^LOUVA_(.+)_(\d+)$/
-      const match = qr_code.match(qrPattern)
+      const match = qrData.match(qrPattern)
 
       if (!match) {
         return NextResponse.json(
@@ -75,9 +114,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
+      success: true,
       valid: true,
       customer: {
         id: customer.id,
+        full_name: customer.full_name,
         name: customer.full_name,
         email: customer.email,
         phone: customer.phone,

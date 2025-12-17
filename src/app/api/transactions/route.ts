@@ -130,12 +130,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update customer points
+    // Update customer points and membership level
     const newPointsBalance = customer.total_points + totalPointsEarned
+    const newMembershipLevel = newPointsBalance >= 1000 ? 'Gold' : newPointsBalance >= 500 ? 'Silver' : 'Bronze'
+
     const { error: updateError } = await supabaseAdmin
       .from('users')
       .update({
         total_points: newPointsBalance,
+        membership_level: newMembershipLevel,
         total_visits: customer.total_visits + 1,
         total_spent: customer.total_spent + totalAmount,
         updated_at: new Date().toISOString()

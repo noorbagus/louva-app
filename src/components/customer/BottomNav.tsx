@@ -16,8 +16,8 @@ export function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-[375px] bg-[var(--surface-light)] border-t border-[var(--border)] backdrop-blur-lg z-40 safe-bottom">
-      <div className="flex items-center justify-around py-3">
+    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-[var(--surface-light)] border-t border-[var(--border)] backdrop-blur-lg z-40 pb-safe px-5">
+      <div className="flex py-3">
         {navItems.map((item) => {
           const isActive = pathname === item.href ||
                          (item.href !== '/customer' && pathname.startsWith(item.href))
@@ -27,14 +27,14 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'nav-tab flex-1 max-w-[80px] flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200',
+                'flex-1 flex flex-col items-center justify-center py-2 transition-all duration-200',
                 isActive 
                   ? 'text-[var(--primary)]' 
                   : 'text-[var(--text-muted)] hover:text-[var(--primary-light)]'
               )}
             >
               <i className="material-icons text-xl mb-1">{item.icon}</i>
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-xs font-medium text-center">{item.label}</span>
             </Link>
           )
         })}
