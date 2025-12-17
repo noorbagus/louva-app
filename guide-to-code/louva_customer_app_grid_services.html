@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOUVA - Customer Loyalty App</title>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- DM Sans Font -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4A8BC2;
+            --primary-light: #5A9BD4;
+            --primary-dark: #3A7BB2;
+            --secondary: #1B3B32;
+            --secondary-light: #2d5548;
+            --accent: #93BEE1;
+            --success: #00d4aa;
+            --warning: #ffa726;
+            --error: #ff5252;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b8c1;
+            --text-muted: #6b7785;
+            --surface: #0a1620;
+            --surface-light: #1a2832;
+            --surface-lighter: #243442;
+            --border: #2d3748;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text-primary);
+            max-width: 375px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .phone-container {
+            background: var(--surface);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 30px var(--shadow);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            padding: 12px 20px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 25px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -50px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(20px, -20px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .user-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-details h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-status {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .louva-logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .points-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .points-display {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .points-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .points-label {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .catalogue-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Content */
+        .content {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* Cards - Unified Style */
+        .card, .service-card, .qr-section, .menu-list, .reward-item, .profile-header, .promo-banner {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover, .service-card:hover, .menu-item:hover {
+            background: var(--surface-lighter);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--shadow);
+        }
+
+        /* Promo Banner - Neutral */
+        .promo-banner {
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .promo-content h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .promo-content p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .promo-decoration {
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            width: 100px;
+            height: 100px;
+            background: rgba(74, 139, 194, 0.1);
+            border-radius: 50%;
+        }
+
+        /* Badges Section - Neutral */
+        .badges-section {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .badges-section h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .badges-section p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Services Grid - NEW STYLING */
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .service-grid-item {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .service-grid-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: left 0.6s;
+        }
+
+        .service-grid-item:hover::before {
+            left: 100%;
+        }
+
+        .service-grid-item:hover {
+            background: var(--surface-lighter);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(74, 139, 194, 0.2);
+        }
+
+        .service-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .service-grid-item:hover .service-icon {
+            color: var(--primary-light);
+            transform: scale(1.1);
+        }
+
+        .service-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .service-price {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .service-points {
+            font-size: 11px;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Service Categories */
+        .service-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            padding-left: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-icon {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        /* QR Section */
+        .qr-section {
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .qr-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .qr-button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(74, 139, 194, 0.3);
+        }
+
+        .qr-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 139, 194, 0.4);
+        }
+
+        /* Menu Lists */
+        .menu-list {
+            overflow: hidden;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .menu-item:hover {
+            background: rgba(74, 139, 194, 0.1);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .menu-text {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .menu-arrow {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 12px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .profile-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .profile-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Rewards Grid */
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .reward-grid-item {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 140px;
+        }
+
+        .reward-grid-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: left 0.6s;
+        }
+
+        .reward-grid-item:hover::before {
+            left: 100%;
+        }
+
+        .reward-grid-item:hover {
+            background: var(--surface-lighter);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 212, 170, 0.2);
+        }
+
+        .reward-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: var(--success);
+            transition: all 0.3s ease;
+        }
+
+        .reward-grid-item:hover .reward-icon {
+            color: var(--primary-light);
+            transform: scale(1.1);
+        }
+
+        .reward-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .reward-description {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .reward-points {
+            font-size: 12px;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            background: var(--surface-light);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 12px 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item:hover {
+            color: var(--primary-light);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* QR Modal */
+        .qr-modal {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            height: 100vh;
+            background: var(--surface);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .qr-modal.show {
+            display: flex;
+        }
+
+        .qr-modal-header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .qr-back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .qr-modal-content {
+            flex: 1;
+            padding: 40px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .qr-code-large {
+            width: 200px;
+            height: 200px;
+            background: var(--surface-light);
+            border: 2px solid var(--primary);
+            margin: 20px auto;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 14px;
+            flex-direction: column;
+        }
+
+        .qr-info-card {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .qr-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .qr-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .qr-info-row span {
+            color: var(--text-secondary);
+        }
+
+        .qr-info-row strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div>21:52</div>
+            <div>📶 📶 📶 🔋96</div>
+        </div>
+
+        <!-- Home Screen -->
+        <div class="screen active" id="home">
+            <div class="header">
+                <div class="user-info">
+                    <div class="user-left">
+                        <div class="user-avatar"><i class="material-icons">person</i></div>
+                        <div class="user-details">
+                            <h3>Sari Dewi</h3>
+                            <div class="user-status">Silver Member</div>
+                        </div>
+                    </div>
+                    <div class="louva-logo">L</div>
+                </div>
+                <div class="points-section">
+                    <div class="points-display">
+                        <span class="points-number">2,450</span>
+                        <span class="points-label">points</span>
+                    </div>
+                    <button class="catalogue-btn">Services</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Promo Banner -->
+                <div class="promo-banner">
+                    <div class="promo-content">
+                        <h3>Weekend Special</h3>
+                        <p>Double points untuk semua hair treatments setiap weekend</p>
+                    </div>
+                    <div class="promo-decoration"></div>
+                </div>
+
+                <!-- Badges Section -->
+                <div class="badges-section">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="material-icons" style="font-size: 24px; color: var(--primary);">emoji_events</i>
+                        <div>
+                            <h3>Badges & Achievements</h3>
+                            <p>Collect badges and unlock more rewards</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="qr-section">
+                    <h3>Ready for your appointment?</h3>
+                    <button class="qr-button" onclick="showQR()">Show QR Code</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Screen - UPDATED WITH GRID LAYOUT -->
+        <div class="screen" id="services">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('home')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Services</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Hair Services Category -->
+                <div class="service-category">
+                    <div class="category-title">
+                        <i class="material-icons category-icon">content_cut</i>
+                        Hair Services
+                    </div>
+                    <div class="services-grid">
+                        <div class="service-grid-item">
+                            <i class="material-icons service-icon">palette</i>
+                            <div class="service-title">Hair Color</div>
+                            <div class="service-price">Rp 300k - 900k</div>
+                            <div class="service-points">300 - 900 pts</div>
+                        </div>
+                        <div class="service-grid-item">
+                            <i class="material-icons service-icon">content_cut</i>
+                            <div class="service-title">Hair Cut</div>
+                            <div class="service-price">Rp 100k - 300k</div>
+                            <div class="service-points">100 - 300 pts</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treatment Services Category -->
+                <div class="service-category">
+                    <div class="category-title">
+                        <i class="material-icons category-icon">spa</i>
+                        Treatments
+                    </div>
+                    <div class="services-grid">
+                        <div class="service-grid-item">
+                            <i class="material-icons service-icon">spa</i>
+                            <div class="service-title">Keratin Therapy</div>
+                            <div class="service-price">Rp 1,090k - 2,260k</div>
+                            <div class="service-points">1,090 - 2,260 pts</div>
+                        </div>
+                        <div class="service-grid-item">
+                            <i class="material-icons service-icon">local_pharmacy</i>
+                            <div class="service-title">Scalp Detox</div>
+                            <div class="service-price">Rp 450k</div>
+                            <div class="service-points">450 pts</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nail Care Category -->
+                <div class="service-category">
+                    <div class="category-title">
+                        <i class="material-icons category-icon">colorize</i>
+                        Nail Care
+                    </div>
+                    <div class="services-grid">
+                        <div class="service-grid-item">
+                            <i class="material-icons service-icon">colorize</i>
+                            <div class="service-title">Nail Art</div>
+                            <div class="service-price">Rp 150k+</div>
+                            <div class="service-points">150+ pts</div>
+                        </div>
+                        <div class="service-grid-item">
+                            <i class="material-icons service-icon">brush</i>
+                            <div class="service-title">Manicure & Pedicure</div>
+                            <div class="service-price">Rp 200k</div>
+                            <div class="service-points">200 pts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Card Screen -->
+        <div class="screen" id="mycard">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('home')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 18px; font-weight: 500;">My card</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 15px;">Silver Member</div>
+                    
+                    <div style="background: var(--surface); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+                        <i class="material-icons" style="font-size: 24px; margin-bottom: 10px; color: var(--primary);">card_giftcard</i>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 14px;">Your rewards will be displayed here. Keep visiting to earn rewards and LOUVA points.</p>
+                    </div>
+                    
+                    <div style="text-align: center; color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                        swipe to refresh
+                        <div style="margin-top: 5px;">⌄</div>
+                    </div>
+                </div>
+
+                <div style="position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); width: calc(375px - 40px);">
+                    <button class="qr-button" onclick="showQR()">Show QR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rewards Screen -->
+        <div class="screen" id="rewards">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('home')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Rewards</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="section-title">Available Rewards</div>
+                
+                <div class="rewards-grid">
+                    <div class="reward-grid-item">
+                        <i class="material-icons reward-icon">shower</i>
+                        <div class="reward-title">Free Hair Wash & Blow Dry</div>
+                        <div class="reward-description">Perfect for a quick refresh!</div>
+                        <div class="reward-points">1,000 points</div>
+                    </div>
+                    <div class="reward-grid-item">
+                        <i class="material-icons reward-icon">content_cut</i>
+                        <div class="reward-title">20% Discount Hair Cut</div>
+                        <div class="reward-description">Valid for all hair cutting services</div>
+                        <div class="reward-points">1,500 points</div>
+                    </div>
+                    <div class="reward-grid-item">
+                        <i class="material-icons reward-icon">colorize</i>
+                        <div class="reward-title">Free Manicure</div>
+                        <div class="reward-description">Complete nail care treatment</div>
+                        <div class="reward-points">2,000 points</div>
+                    </div>
+                    <div class="reward-grid-item">
+                        <i class="material-icons reward-icon">spa</i>
+                        <div class="reward-title">Premium Hair Treatment</div>
+                        <div class="reward-description">Deep conditioning & hair mask</div>
+                        <div class="reward-points">3,000 points</div>
+                    </div>
+                    <div class="reward-grid-item">
+                        <i class="material-icons reward-icon">palette</i>
+                        <div class="reward-title">Hair Color Discount</div>
+                        <div class="reward-description">30% off any color service</div>
+                        <div class="reward-points">2,500 points</div>
+                    </div>
+                    <div class="reward-grid-item">
+                        <i class="material-icons reward-icon">card_giftcard</i>
+                        <div class="reward-title">Surprise Gift</div>
+                        <div class="reward-description">Mystery reward package</div>
+                        <div class="reward-points">5,000 points</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Screen -->
+        <div class="screen" id="account">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('home')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Account</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="profile-header" style="margin: 0 -5px 20px -5px;">
+                    <div class="profile-avatar"><i class="material-icons">person</i></div>
+                    <h3>Sari Dewi</h3>
+                    <p>View and edit profile</p>
+                </div>
+                <!-- Statistics -->
+                <div class="section-title">Your Statistics</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">15</div>
+                        <div class="stat-label">Total Visits</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">3.2M</div>
+                        <div class="stat-label">Total Spent</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">2,450</div>
+                        <div class="stat-label">Points</div>
+                    </div>
+                </div>
+
+                <div class="menu-list">
+                    <div class="menu-item" onclick="showScreen('transactions')">
+                        <div class="menu-icon"><i class="material-icons">receipt_long</i></div>
+                        <div class="menu-text">Transaction History</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item" onclick="showScreen('redemptions')">
+                        <div class="menu-icon"><i class="material-icons">redeem</i></div>
+                        <div class="menu-text">My Redemptions</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item" onclick="showScreen('achievements')">
+                        <div class="menu-icon"><i class="material-icons">emoji_events</i></div>
+                        <div class="menu-text">Achievements</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item" onclick="showScreen('locations')">
+                        <div class="menu-icon"><i class="material-icons">location_on</i></div>
+                        <div class="menu-text">Salon Locations</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item" onclick="showScreen('points-expiry')">
+                        <div class="menu-icon"><i class="material-icons">schedule</i></div>
+                        <div class="menu-text">Points Expiry</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item" onclick="showScreen('notifications-settings')">
+                        <div class="menu-icon"><i class="material-icons">notifications</i></div>
+                        <div class="menu-text">Notifications</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item" onclick="showScreen('help')">
+                        <div class="menu-icon"><i class="material-icons">help</i></div>
+                        <div class="menu-text">Help & Support</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item" onclick="showScreen('settings')">
+                        <div class="menu-icon"><i class="material-icons">settings</i></div>
+                        <div class="menu-text">Settings</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History Screen -->
+        <div class="screen" id="transactions">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('account')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Transaction History</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="section-title">Recent Transactions</div>
+                
+                <div class="menu-list">
+                    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <strong style="color: var(--text-primary);">Hair Color + Cut</strong>
+                            <span style="color: var(--primary); font-weight: 600;">+650 pts</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                            <span>Dec 15, 2025</span>
+                            <span>Rp 650,000</span>
+                        </div>
+                    </div>
+                    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <strong style="color: var(--text-primary);">Scalp Treatment</strong>
+                            <span style="color: var(--primary); font-weight: 600;">+450 pts</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                            <span>Dec 10, 2025</span>
+                            <span>Rp 450,000</span>
+                        </div>
+                    </div>
+                    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <strong style="color: var(--text-primary);">Hair Cut</strong>
+                            <span style="color: var(--primary); font-weight: 600;">+200 pts</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                            <span>Dec 5, 2025</span>
+                            <span>Rp 200,000</span>
+                        </div>
+                    </div>
+                    <div style="padding: 15px 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <strong style="color: var(--text-primary);">Manicure & Pedicure</strong>
+                            <span style="color: var(--primary); font-weight: 600;">+350 pts</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                            <span>Nov 28, 2025</span>
+                            <span>Rp 350,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div class="screen" id="settings">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('account')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Settings</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="section-title">Account Settings</div>
+                <div class="menu-list" style="margin-bottom: 25px;">
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">person</i></div>
+                        <div class="menu-text">Edit Profile</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">lock</i></div>
+                        <div class="menu-text">Change Password</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">privacy_tip</i></div>
+                        <div class="menu-text">Privacy Settings</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                </div>
+
+                <div class="section-title">App Settings</div>
+                <div class="menu-list" style="margin-bottom: 25px;">
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">notifications</i></div>
+                        <div class="menu-text">Notifications</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">language</i></div>
+                        <div class="menu-text">Language</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">palette</i></div>
+                        <div class="menu-text">Theme</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Support</div>
+                <div class="menu-list">
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">help</i></div>
+                        <div class="menu-text">Help Center</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">feedback</i></div>
+                        <div class="menu-text">Send Feedback</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">info</i></div>
+                        <div class="menu-text">About</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Modal -->
+        <div class="qr-modal" id="qrModal">
+            <div class="qr-modal-header">
+                <button class="qr-back-btn" onclick="hideQR()"><i class="material-icons">arrow_back</i></button>
+                <h2 style="margin: 0; font-size: 18px;">My QR Code</h2>
+            </div>
+            <div class="qr-modal-content">
+                <h3 style="margin-bottom: 10px;">Show this to our staff</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 30px;">Scan to earn points with your purchase</p>
+                
+                <div class="qr-code-large">
+                    <i class="material-icons" style="font-size: 40px; margin-bottom: 10px;">qr_code</i>
+                    <div>QR CODE</div>
+                    <div style="font-size: 12px; opacity: 0.7; margin-top: 5px;">ID: SD001</div>
+                </div>
+                
+                <div class="qr-info-card">
+                    <div class="qr-info-row">
+                        <span>Current Points:</span>
+                        <strong>2,450</strong>
+                    </div>
+                    <div class="qr-info-row">
+                        <span>Membership:</span>
+                        <strong>Silver</strong>
+                    </div>
+                    <div class="qr-info-row">
+                        <span>Valid until:</span>
+                        <strong>Dec 31, 2025</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showScreen('home')">
+                <i class="material-icons nav-icon">home</i>
+                <div class="nav-label">Home</div>
+            </div>
+            <div class="nav-item" onclick="showScreen('services')">
+                <i class="material-icons nav-icon">spa</i>
+                <div class="nav-label">Services</div>
+            </div>
+            <div class="nav-item" onclick="showScreen('mycard')">
+                <i class="material-icons nav-icon">credit_card</i>
+                <div class="nav-label">My card</div>
+            </div>
+            <div class="nav-item" onclick="showScreen('rewards')">
+                <i class="material-icons nav-icon">card_giftcard</i>
+                <div class="nav-label">Rewards</div>
+            </div>
+            <div class="nav-item" onclick="showScreen('account')">
+                <i class="material-icons nav-icon">person</i>
+                <div class="nav-label">Account</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            // Hide QR modal if open
+            document.getElementById('qrModal').classList.remove('show');
+            
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate the corresponding nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            const screenIndex = ['home', 'services', 'mycard', 'rewards', 'account'].indexOf(screenId);
+            if (screenIndex !== -1 && navItems[screenIndex]) {
+                navItems[screenIndex].classList.add('active');
+            }
+        }
+
+        function showQR() {
+            document.getElementById('qrModal').classList.add('show');
+        }
+
+        function hideQR() {
+            document.getElementById('qrModal').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

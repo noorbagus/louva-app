@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOUVA Admin - Salon Management</title>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4A8BC2;
+            --primary-light: #5A9BD4;
+            --primary-dark: #3A7BB2;
+            --secondary: #1B3B32;
+            --secondary-light: #2d5548;
+            --accent: #93BEE1;
+            --accent-dark: #7ba6d3;
+            --success: #00d4aa;
+            --warning: #ffa726;
+            --error: #ff5252;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b8c1;
+            --text-muted: #6b7785;
+            --surface: #0a1620;
+            --surface-light: #1a2832;
+            --surface-lighter: #243442;
+            --border: #2d3748;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text-primary);
+            max-width: 375px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .phone-container {
+            background: var(--surface);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 30px var(--shadow);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            padding: 12px 20px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            background: var(--primary);
+            color: var(--text-primary);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 25px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -50px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(20px, -20px);
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .admin-avatar {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .admin-avatar {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .admin-details h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: white;
+        }
+
+        .admin-role {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .salon-stats {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Content */
+        .content {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .quick-action {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: left 0.6s;
+        }
+
+        .quick-action:hover::before {
+            left: 100%;
+        }
+
+        .quick-action:hover {
+            background: var(--surface-lighter);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(147, 190, 225, 0.2);
+        }
+
+        .quick-action.primary {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+            border: none;
+        }
+
+        .quick-action.primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(27, 59, 50, 0.4);
+        }
+
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .action-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Menu Cards */
+        .menu-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        .menu-card {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-card:hover {
+            background: var(--surface-lighter);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--shadow);
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .menu-item:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .menu-text {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .menu-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .menu-badge {
+            background: var(--accent);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .menu-arrow {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            background: var(--surface-light);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 12px 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item:hover {
+            color: var(--accent-light);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Scanner Screen */
+        .scanner-container {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .scanner-frame {
+            width: 250px;
+            height: 250px;
+            border: 3px solid var(--accent);
+            border-radius: 20px;
+            margin: 30px auto;
+            position: relative;
+            background: var(--surface-lighter);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scan 2s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; opacity: 1; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .scanner-corners {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            pointer-events: none;
+        }
+
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent);
+        }
+
+        .corner.top-left {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner.top-right {
+            top: 0;
+            right: 0;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner.bottom-left {
+            bottom: 0;
+            left: 0;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner.bottom-right {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Transaction Screen */
+        .customer-info {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .customer-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .customer-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .customer-details h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .customer-level {
+            background: var(--warning);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .customer-stats {
+            display: flex;
+            justify-content: space-between;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .customer-stat {
+            text-align: center;
+        }
+
+        .customer-stat-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .customer-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Service Selection */
+        .service-list {
+            margin-bottom: 25px;
+        }
+
+        .service-item {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .service-item:hover {
+            background: var(--surface-lighter);
+            border-color: var(--accent);
+        }
+
+        .service-item.selected {
+            background: rgba(233, 69, 96, 0.1);
+            border-color: var(--accent);
+        }
+
+        .service-info h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .service-price {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .service-points {
+            text-align: right;
+        }
+
+        .points-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .points-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Payment Methods */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .payment-method {
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .payment-method:hover {
+            background: var(--surface-lighter);
+        }
+
+        .payment-method.selected {
+            background: rgba(233, 69, 96, 0.1);
+            border-color: var(--accent);
+        }
+
+        .payment-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .payment-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Action Button */
+        .action-button {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+        }
+
+        .action-button:disabled {
+            background: var(--surface-lighter);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(10px);
+        }
+
+        /* Service Management */
+        .service-management-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .service-management-item:last-child {
+            border-bottom: none;
+        }
+
+        .service-details {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .edit-btn, .delete-btn {
+            background: none;
+            border: 1px solid var(--border);
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-btn {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .edit-btn:hover {
+            background: rgba(147, 190, 225, 0.1);
+        }
+
+        .delete-btn {
+            color: var(--error);
+            border-color: var(--error);
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 82, 82, 0.1);
+        }
+
+        /* Modal Styling */
+        .service-modal {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .service-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface-light);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 340px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--surface-lighter);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(147, 190, 225, 0.1);
+        }
+
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .cancel-btn, .save-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cancel-btn {
+            background: var(--surface);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .cancel-btn:hover {
+            background: var(--surface-lighter);
+            color: var(--text-primary);
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: white;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(147, 190, 225, 0.3);
+        }
+
+        /* Customer Item Styling */
+        .customer-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .customer-item:last-child {
+            border-bottom: none;
+        }
+
+        .customer-item .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 18px;
+        }
+
+        /* Period Button Styling */
+        .period-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .period-btn.active,
+        .period-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div>21:52</div>
+            <div>📶 📶 📶 🔋96</div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div class="screen active" id="dashboard">
+            <div class="header">
+                <div class="admin-info">
+                    <div class="admin-avatar"><i class="material-icons">person</i></div>
+                    <div class="admin-details">
+                        <h3>Maya Sari</h3>
+                        <div class="admin-role">Salon Manager</div>
+                    </div>
+                </div>
+                <div class="salon-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">24</div>
+                        <div class="stat-label">Today's Customers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">12.5M</div>
+                        <div class="stat-label">Revenue (IDR)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">89%</div>
+                        <div class="stat-label">Satisfaction</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="quick-actions">
+                    <div class="quick-action primary" onclick="showScreen('scanner')">
+                        <i class="material-icons action-icon">qr_code_scanner</i>
+                        <span class="action-title">Scan Customer</span>
+                    </div>
+                    <div class="quick-action" onclick="showScreen('customers')">
+                        <i class="material-icons action-icon">people</i>
+                        <span class="action-title">Customers</span>
+                    </div>
+                    <div class="quick-action" onclick="showScreen('services')">
+                        <i class="material-icons action-icon">spa</i>
+                        <span class="action-title">Services</span>
+                    </div>
+                    <div class="quick-action" onclick="showScreen('reports')">
+                        <i class="material-icons action-icon">analytics</i>
+                        <span class="action-title">Reports</span>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-title">Management</div>
+                    <div class="menu-card">
+                        <div class="menu-item" onclick="showScreen('customers')">
+                            <div class="menu-icon"><i class="material-icons">people</i></div>
+                            <div style="flex: 1;">
+                                <div class="menu-text">Customer Management</div>
+                                <div class="menu-subtitle">View, add, edit customer profiles</div>
+                            </div>
+                            <div class="menu-badge">248</div>
+                            <div class="menu-arrow">›</div>
+                        </div>
+                        <div class="menu-item" onclick="showScreen('services')">
+                            <div class="menu-icon"><i class="material-icons">spa</i></div>
+                            <div style="flex: 1;">
+                                <div class="menu-text">Service Management</div>
+                                <div class="menu-subtitle">Manage services and pricing</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-title">Marketing</div>
+                    <div class="menu-card">
+                        <div class="menu-item" onclick="showScreen('notifications')">
+                            <div class="menu-icon"><i class="material-icons">notifications</i></div>
+                            <div style="flex: 1;">
+                                <div class="menu-text">Push Notifications</div>
+                                <div class="menu-subtitle">Send promotional messages</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </div>
+                        <div class="menu-item" onclick="showScreen('analytics')">
+                            <div class="menu-icon"><i class="material-icons">trending_up</i></div>
+                            <div style="flex: 1;">
+                                <div class="menu-text">Analytics</div>
+                                <div class="menu-subtitle">Customer insights & trends</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Screen -->
+        <div class="screen" id="scanner">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('dashboard')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Scan Customer QR</h2>
+                </div>
+            </div>
+
+            <div class="scanner-container">
+                <h3 style="margin-bottom: 10px;">Position QR code in frame</h3>
+                <p style="color: var(--text-muted); margin-bottom: 30px;">Ask customer to show their loyalty card QR code</p>
+                
+                <div class="scanner-frame">
+                    <div class="scanner-line"></div>
+                    <div class="scanner-corners">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                    </div>
+                    <i class="material-icons" style="font-size: 48px; opacity: 0.3;">qr_code</i>
+                </div>
+
+                <p style="color: var(--text-muted); font-size: 14px;">Camera will automatically detect QR code</p>
+                
+                <button class="action-button" style="margin-top: 30px;" onclick="simulateScan()">
+                    Simulate Scan (Demo)
+                </button>
+            </div>
+        </div>
+
+        <!-- Services Management Screen -->
+        <div class="screen" id="services">
+            <div class="header">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('dashboard')"><i class="material-icons">arrow_back</i></button>
+                        <h2 style="font-size: 20px; font-weight: 600; color: white;">Service Management</h2>
+                    </div>
+                    <button style="background: var(--secondary); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;" onclick="showAddService()">+ Add</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="section-title">Active Services</div>
+                
+                <!-- Hair Services -->
+                <div class="menu-section">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 10px; padding-left: 5px;"><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">content_cut</i>Hair Services</div>
+                    <div class="menu-card">
+                        <div class="service-management-item">
+                            <div class="service-info">
+                                <h5>Hair Cut</h5>
+                                <div class="service-details">Rp 100,000 - 300,000 • 100-300 pts</div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="edit-btn"><i class="material-icons">edit</i></button>
+                                <button class="delete-btn"><i class="material-icons">delete</i></button>
+                            </div>
+                        </div>
+                        <div class="service-management-item">
+                            <div class="service-info">
+                                <h5>Hair Color</h5>
+                                <div class="service-details">Rp 300,000 - 900,000 • 300-900 pts</div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="edit-btn"><i class="material-icons">edit</i></button>
+                                <button class="delete-btn"><i class="material-icons">delete</i></button>
+                            </div>
+                        </div>
+                        <div class="service-management-item">
+                            <div class="service-info">
+                                <h5>Keratin Therapy</h5>
+                                <div class="service-details">Rp 1,090,000 - 2,260,000 • 1090-2260 pts</div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="edit-btn"><i class="material-icons">edit</i></button>
+                                <button class="delete-btn"><i class="material-icons">delete</i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treatment Services -->
+                <div class="menu-section">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 10px; padding-left: 5px;"><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">spa</i>Treatments</div>
+                    <div class="menu-card">
+                        <div class="service-management-item">
+                            <div class="service-info">
+                                <h5>Scalp Detox</h5>
+                                <div class="service-details">Rp 450,000 • 450 pts</div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="edit-btn"><i class="material-icons">edit</i></button>
+                                <button class="delete-btn"><i class="material-icons">delete</i></button>
+                            </div>
+                        </div>
+                        <div class="service-management-item">
+                            <div class="service-info">
+                                <h5>Hair Spa</h5>
+                                <div class="service-details">Rp 250,000 • 250 pts</div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="edit-btn"><i class="material-icons">edit</i></button>
+                                <button class="delete-btn"><i class="material-icons">delete</i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nail Services -->
+                <div class="menu-section">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 10px; padding-left: 5px;"><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 5px;">colorize</i>Nail Care</div>
+                    <div class="menu-card">
+                        <div class="service-management-item">
+                            <div class="service-info">
+                                <h5>Nail Art</h5>
+                                <div class="service-details">Rp 150,000+ • 150+ pts</div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="edit-btn"><i class="material-icons">edit</i></button>
+                                <button class="delete-btn"><i class="material-icons">delete</i></button>
+                            </div>
+                        </div>
+                        <div class="service-management-item">
+                            <div class="service-info">
+                                <h5>Manicure & Pedicure</h5>
+                                <div class="service-details">Rp 200,000 • 200 pts</div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="edit-btn"><i class="material-icons">edit</i></button>
+                                <button class="delete-btn"><i class="material-icons">delete</i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers Management Screen -->
+        <div class="screen" id="customers">
+            <div class="header">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('dashboard')"><i class="material-icons">arrow_back</i></button>
+                        <h2 style="font-size: 20px; font-weight: 600;">Customer Management</h2>
+                    </div>
+                    <button style="background: var(--secondary); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;" onclick="showAddCustomer()">+ Add</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Search Bar -->
+                <div style="margin-bottom: 20px;">
+                    <div style="position: relative;">
+                        <i class="material-icons" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 20px;">search</i>
+                        <input type="text" placeholder="Search customers..." style="width: 100%; padding: 12px 15px 12px 45px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-primary); font-size: 14px;">
+                    </div>
+                </div>
+
+                <!-- Customer Stats -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                    <div style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--accent);">248</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Total</div>
+                    </div>
+                    <div style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--success);">156</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Active</div>
+                    </div>
+                    <div style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--warning);">32</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">New</div>
+                    </div>
+                </div>
+
+                <!-- Customer List -->
+                <div class="menu-card">
+                    <div class="customer-item">
+                        <div class="customer-avatar" style="background: var(--accent);"><i class="material-icons">person</i></div>
+                        <div style="flex: 1;">
+                            <h5>Sari Dewi</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">Silver • 2,450 pts • Last visit: Dec 15</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="edit-btn"><i class="material-icons">edit</i></button>
+                            <button class="delete-btn"><i class="material-icons">delete</i></button>
+                        </div>
+                    </div>
+                    <div class="customer-item">
+                        <div class="customer-avatar" style="background: var(--warning);"><i class="material-icons">person</i></div>
+                        <div style="flex: 1;">
+                            <h5>Maya Putri</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">Gold • 8,750 pts • Last visit: Dec 16</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="edit-btn"><i class="material-icons">edit</i></button>
+                            <button class="delete-btn"><i class="material-icons">delete</i></button>
+                        </div>
+                    </div>
+                    <div class="customer-item">
+                        <div class="customer-avatar" style="background: var(--secondary);"><i class="material-icons">person</i></div>
+                        <div style="flex: 1;">
+                            <h5>Rina Indah</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">Bronze • 560 pts • Last visit: Dec 10</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="edit-btn"><i class="material-icons">edit</i></button>
+                            <button class="delete-btn"><i class="material-icons">delete</i></button>
+                        </div>
+                    </div>
+                    <div class="customer-item">
+                        <div class="customer-avatar" style="background: var(--accent);"><i class="material-icons">person</i></div>
+                        <div style="flex: 1;">
+                            <h5>Linda Sari</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">Silver • 1,890 pts • Last visit: Dec 12</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="edit-btn"><i class="material-icons">edit</i></button>
+                            <button class="delete-btn"><i class="material-icons">delete</i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Screen -->
+        <div class="screen" id="reports">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('dashboard')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Reports & Analytics</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Period Selector -->
+                <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+                    <button class="period-btn active">Today</button>
+                    <button class="period-btn">Week</button>
+                    <button class="period-btn">Month</button>
+                    <button class="period-btn">Year</button>
+                </div>
+
+                <!-- Key Metrics -->
+                <div class="section-title">Revenue Overview</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                    <div style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 16px; padding: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <i class="material-icons" style="color: var(--success);">trending_up</i>
+                            <span style="font-size: 14px; color: var(--text-muted);">Daily Revenue</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">Rp 12.5M</div>
+                        <div style="font-size: 12px; color: var(--success);">+15.2% from yesterday</div>
+                    </div>
+                    <div style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 16px; padding: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <i class="material-icons" style="color: var(--accent);">people</i>
+                            <span style="font-size: 14px; color: var(--text-muted);">Customers</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">24</div>
+                        <div style="font-size: 12px; color: var(--success);">+3 from yesterday</div>
+                    </div>
+                </div>
+
+                <!-- Top Services -->
+                <div class="section-title">Top Services Today</div>
+                <div class="menu-card" style="margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <h5>Hair Color</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">8 bookings</div>
+                        </div>
+                        <div style="color: var(--accent); font-weight: 600;">Rp 3.6M</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <h5>Hair Cut</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">12 bookings</div>
+                        </div>
+                        <div style="color: var(--accent); font-weight: 600;">Rp 2.4M</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+                        <div>
+                            <h5>Keratin Therapy</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">3 bookings</div>
+                        </div>
+                        <div style="color: var(--accent); font-weight: 600;">Rp 3.3M</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section-title">Export Reports</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <button style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 12px; padding: 15px; color: var(--text-primary); cursor: pointer;">
+                        <i class="material-icons" style="display: block; margin-bottom: 8px; font-size: 24px;">file_download</i>
+                        <span style="font-size: 14px;">Download PDF</span>
+                    </button>
+                    <button style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 12px; padding: 15px; color: var(--text-primary); cursor: pointer;">
+                        <i class="material-icons" style="display: block; margin-bottom: 8px; font-size: 24px;">table_chart</i>
+                        <span style="font-size: 14px;">Export Excel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div class="screen" id="settings">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('dashboard')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Settings</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Profile Settings -->
+                <div class="section-title">Account</div>
+                <div class="menu-card" style="margin-bottom: 25px;">
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">person</i></div>
+                        <div class="menu-text">Profile Settings</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">lock</i></div>
+                        <div class="menu-text">Change Password</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">security</i></div>
+                        <div class="menu-text">Security Settings</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                </div>
+
+                <!-- App Settings -->
+                <div class="section-title">Application</div>
+                <div class="menu-card" style="margin-bottom: 25px;">
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">store</i></div>
+                        <div class="menu-text">Salon Information</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">palette</i></div>
+                        <div class="menu-text">Theme Settings</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">language</i></div>
+                        <div class="menu-text">Language</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                </div>
+
+                <!-- Data Management -->
+                <div class="section-title">Data</div>
+                <div class="menu-card" style="margin-bottom: 25px;">
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">backup</i></div>
+                        <div class="menu-text">Backup & Restore</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">file_download</i></div>
+                        <div class="menu-text">Export Data</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">delete_forever</i></div>
+                        <div class="menu-text">Clear Cache</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                </div>
+
+                <!-- Support -->
+                <div class="section-title">Support</div>
+                <div class="menu-card">
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">help</i></div>
+                        <div class="menu-text">Help Center</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">bug_report</i></div>
+                        <div class="menu-text">Report Issue</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-icon"><i class="material-icons">info</i></div>
+                        <div class="menu-text">About</div>
+                        <div class="menu-arrow">›</div>
+                    </div>
+                </div>
+
+                <!-- Logout -->
+                <button style="background: var(--error); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-size: 16px; font-weight: 600; width: 100%; cursor: pointer; margin-top: 30px;">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">logout</i>
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Push Notifications Screen -->
+        <div class="screen" id="notifications">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('dashboard')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Push Notifications</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Notification Composer -->
+                <div class="section-title">Send Notification</div>
+                <div style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                    <div class="form-group">
+                        <label>Target Audience</label>
+                        <select style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-primary);">
+                            <option>All Customers</option>
+                            <option>Silver Members</option>
+                            <option>Gold Members</option>
+                            <option>Inactive Customers</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Message Title</label>
+                        <input type="text" placeholder="Special Weekend Offer!" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-primary);">
+                    </div>
+                    <div class="form-group">
+                        <label>Message Content</label>
+                        <textarea placeholder="Get 20% off all hair treatments this weekend only!" style="width: 100%; height: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-primary); resize: vertical;"></textarea>
+                    </div>
+                    <button class="action-button" onclick="sendNotification()">Send Notification</button>
+                </div>
+
+                <!-- Recent Notifications -->
+                <div class="section-title">Recent Notifications</div>
+                <div class="menu-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <h5>Weekend Special Offer</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">Sent to All Customers • Dec 16, 2:30 PM</div>
+                        </div>
+                        <div style="color: var(--success); font-size: 12px;">Delivered: 248</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <h5>New Service Alert</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">Sent to Silver Members • Dec 15, 10:00 AM</div>
+                        </div>
+                        <div style="color: var(--success); font-size: 12px;">Delivered: 156</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+                        <div>
+                            <h5>Birthday Rewards</h5>
+                            <div style="font-size: 12px; color: var(--text-muted);">Sent to Birthday Customers • Dec 14, 9:00 AM</div>
+                        </div>
+                        <div style="color: var(--success); font-size: 12px;">Delivered: 12</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Screen -->
+        <div class="screen" id="analytics">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('dashboard')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">Analytics</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Customer Analytics -->
+                <div class="section-title">Customer Insights</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                    <div style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 16px; padding: 20px;">
+                        <h5 style="margin-bottom: 15px;">Retention Rate</h5>
+                        <div style="font-size: 28px; font-weight: 700; color: var(--success);">85%</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">+5% from last month</div>
+                    </div>
+                    <div style="background: var(--surface-light); border: 1px solid var(--border); border-radius: 16px; padding: 20px;">
+                        <h5 style="margin-bottom: 15px;">Avg Spend</h5>
+                        <div style="font-size: 28px; font-weight: 700; color: var(--accent);">Rp 485k</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">+12% from last month</div>
+                    </div>
+                </div>
+
+                <!-- Membership Distribution -->
+                <div class="section-title">Membership Levels</div>
+                <div class="menu-card" style="margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 12px; height: 12px; background: var(--warning); border-radius: 50%;"></div>
+                            <span>Gold Members</span>
+                        </div>
+                        <span style="font-weight: 600;">18% (45)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 12px; height: 12px; background: var(--accent); border-radius: 50%;"></div>
+                            <span>Silver Members</span>
+                        </div>
+                        <span style="font-weight: 600;">45% (112)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 12px; height: 12px; background: var(--secondary); border-radius: 50%;"></div>
+                            <span>Bronze Members</span>
+                        </div>
+                        <span style="font-weight: 600;">37% (91)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Service Modal -->
+        <div class="service-modal" id="serviceModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add New Service</h3>
+                    <button class="close-btn" onclick="hideAddService()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Service Name</label>
+                        <input type="text" id="serviceName" placeholder="e.g. Hair Treatment">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="serviceCategory">
+                            <option value="hair">Hair Services</option>
+                            <option value="treatment">Treatments</option>
+                            <option value="nail">Nail Care</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Min Price (Rp)</label>
+                            <input type="number" id="minPrice" placeholder="100000">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Price (Rp)</label>
+                            <input type="number" id="maxPrice" placeholder="300000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Points Formula</label>
+                        <select id="pointsFormula">
+                            <option value="1">1 point per 1000 IDR (Standard)</option>
+                            <option value="1.5">1.5 points per 1000 IDR (Premium)</option>
+                            <option value="2">2 points per 1000 IDR (VIP)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description (Optional)</label>
+                        <textarea id="serviceDescription" placeholder="Service description..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="cancel-btn" onclick="hideAddService()">Cancel</button>
+                    <button class="save-btn" onclick="saveService()">Save Service</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Screen -->
+        <div class="screen" id="transaction">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;" onclick="showScreen('scanner')"><i class="material-icons">arrow_back</i></button>
+                    <h2 style="font-size: 20px; font-weight: 600;">New Transaction</h2>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="customer-info">
+                    <div class="customer-header">
+                        <div class="customer-avatar"><i class="material-icons">person</i></div>
+                        <div class="customer-details">
+                            <h4>Sari Dewi</h4>
+                            <div class="customer-level">Silver Member</div>
+                        </div>
+                    </div>
+                    <div class="customer-stats">
+                        <div class="customer-stat">
+                            <div class="customer-stat-number">2,450</div>
+                            <div class="customer-stat-label">Current Points</div>
+                        </div>
+                        <div class="customer-stat">
+                            <div class="customer-stat-number">15</div>
+                            <div class="customer-stat-label">Total Visits</div>
+                        </div>
+                        <div class="customer-stat">
+                            <div class="customer-stat-number">3.2M</div>
+                            <div class="customer-stat-label">Lifetime Value</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">Select Services</div>
+                <div class="service-list">
+                    <div class="service-item" onclick="toggleService(this)">
+                        <div class="service-info">
+                            <h5>Hair Cut</h5>
+                            <div class="service-price">Rp 200,000</div>
+                        </div>
+                        <div class="service-points">
+                            <div class="points-number">+200</div>
+                            <div class="points-label">points</div>
+                        </div>
+                    </div>
+                    <div class="service-item selected" onclick="toggleService(this)">
+                        <div class="service-info">
+                            <h5>Hair Color</h5>
+                            <div class="service-price">Rp 450,000</div>
+                        </div>
+                        <div class="service-points">
+                            <div class="points-number">+450</div>
+                            <div class="points-label">points</div>
+                        </div>
+                    </div>
+                    <div class="service-item" onclick="toggleService(this)">
+                        <div class="service-info">
+                            <h5>Scalp Treatment</h5>
+                            <div class="service-price">Rp 350,000</div>
+                        </div>
+                        <div class="service-points">
+                            <div class="points-number">+350</div>
+                            <div class="points-label">points</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">Payment Method</div>
+                <div class="payment-methods">
+                    <div class="payment-method selected" onclick="selectPayment(this)">
+                        <i class="material-icons payment-icon">credit_card</i>
+                        <div class="payment-label">Debit Card</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment(this)">
+                        <i class="material-icons payment-icon">payments</i>
+                        <div class="payment-label">Cash</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment(this)">
+                        <i class="material-icons payment-icon">phone_android</i>
+                        <div class="payment-label">E-Wallet</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment(this)">
+                        <i class="material-icons payment-icon">account_balance</i>
+                        <div class="payment-label">Transfer</div>
+                    </div>
+                </div>
+
+                <div style="background: var(--surface-lighter); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Subtotal:</span>
+                        <span style="font-weight: 600;">Rp 450,000</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
+                        <span>Points to earn:</span>
+                        <span style="color: var(--success); font-weight: 600;">+450 points</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700;">
+                        <span>Total:</span>
+                        <span>Rp 450,000</span>
+                    </div>
+                </div>
+
+                <button class="action-button" onclick="processTransaction()">
+                    Process Transaction
+                </button>
+            </div>
+        </div>
+
+        <!-- Notification -->
+        <div class="notification" id="notification">
+            Transaction completed successfully!
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showScreen('dashboard')">
+                <i class="material-icons nav-icon">dashboard</i>
+                <div class="nav-label">Dashboard</div>
+            </div>
+            <div class="nav-item" onclick="showScreen('customers')">
+                <i class="material-icons nav-icon">people</i>
+                <div class="nav-label">Customers</div>
+            </div>
+            <div class="nav-item" onclick="showScreen('scanner')">
+                <i class="material-icons nav-icon">qr_code_scanner</i>
+                <div class="nav-label">Scanner</div>
+            </div>
+            <div class="nav-item" onclick="showScreen('reports')">
+                <i class="material-icons nav-icon">analytics</i>
+                <div class="nav-label">Reports</div>
+            </div>
+            <div class="nav-item" onclick="showScreen('settings')">
+                <i class="material-icons nav-icon">settings</i>
+                <div class="nav-label">Settings</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            document.getElementById(screenId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const navItems = document.querySelectorAll('.nav-item');
+            const screenIndex = ['dashboard', 'customers', 'scanner', 'reports', 'settings'].indexOf(screenId);
+            if (screenIndex !== -1 && navItems[screenIndex]) {
+                navItems[screenIndex].classList.add('active');
+            }
+        }
+
+        function simulateScan() {
+            showNotification('QR Code detected! Customer: Sari Dewi');
+            setTimeout(() => {
+                showScreen('transaction');
+            }, 1500);
+        }
+
+        function toggleService(element) {
+            element.classList.toggle('selected');
+        }
+
+        function selectPayment(element) {
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+
+        function processTransaction() {
+            showNotification('Transaction completed successfully!');
+            setTimeout(() => {
+                showScreen('dashboard');
+            }, 2000);
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function showAddService() {
+            document.getElementById('serviceModal').classList.add('show');
+        }
+
+        function hideAddService() {
+            document.getElementById('serviceModal').classList.remove('show');
+            // Clear form
+            document.getElementById('serviceName').value = '';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            document.getElementById('serviceDescription').value = '';
+        }
+
+        function saveService() {
+            const name = document.getElementById('serviceName').value;
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+            
+            if (!name || !minPrice) {
+                showNotification('Please fill in required fields');
+                return;
+            }
+            
+            showNotification(`Service "${name}" added successfully!`);
+            hideAddService();
+        }
+
+        function showAddCustomer() {
+            showNotification('Add customer feature - Coming soon!');
+        }
+
+        function sendNotification() {
+            showNotification('Notification sent successfully to all customers!');
+        }
+    </script>
+</body>
+</html>
