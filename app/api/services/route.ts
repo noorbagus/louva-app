@@ -19,6 +19,18 @@ export async function GET(request: NextRequest) {
 
     const { data: services, error } = await query
 
+    // Transform data to match frontend expectations
+    const transformedServices = services.map(service => ({
+      id: service.id,
+      name: service.name,
+      category: service.category,
+      price_min: service.min_price,
+      price_max: service.max_price,
+      point_multiplier: service.points_multiplier,
+      description: service.description,
+      is_active: service.is_active
+    }))
+
     if (error) {
       console.error('Error fetching services:', error)
       return NextResponse.json(
@@ -27,7 +39,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(services)
+    return NextResponse.json(transformedServices)
   } catch (error) {
     console.error('Error in services API:', error)
     return NextResponse.json(

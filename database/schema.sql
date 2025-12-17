@@ -1,300 +1,209 @@
--- LOUVA Salon Loyalty App Database Schema
--- Create tables for customer loyalty management system
+-- LOUVA Salon Loyalty App - Complete Database Schema
+-- Run this after dropping all tables
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Customers table
-CREATE TABLE customers (
+-- Users table (customers)
+CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  phone VARCHAR(20) UNIQUE NOT NULL,
-  membership_level VARCHAR(20) DEFAULT 'Bronze' CHECK (membership_level IN ('Bronze', 'Silver', 'Gold')),
+  email VARCHAR UNIQUE NOT NULL,
+  full_name VARCHAR NOT NULL,
+  phone VARCHAR,
+  membership_level VARCHAR DEFAULT 'Bronze',
   total_points INTEGER DEFAULT 0,
-  qr_code VARCHAR(255) UNIQUE NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  last_visit TIMESTAMP WITH TIME ZONE
+  total_visits INTEGER DEFAULT 0,
+  total_spent DECIMAL(12,2) DEFAULT 0,
+  qr_code VARCHAR UNIQUE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Admin users table
+-- Admins table
 CREATE TABLE admins (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  role VARCHAR(50) DEFAULT 'staff' CHECK (role IN ('staff', 'manager', 'admin')),
-  phone VARCHAR(20),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  email VARCHAR UNIQUE NOT NULL,
+  full_name VARCHAR NOT NULL,
+  role VARCHAR DEFAULT 'manager',
+  salon_id UUID,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Services table
 CREATE TABLE services (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(255) NOT NULL,
-  category VARCHAR(50) NOT NULL CHECK (category IN ('Hair', 'Treatment', 'Nail')),
-  price_min INTEGER NOT NULL,
-  price_max INTEGER NOT NULL,
-  point_multiplier DECIMAL(3,2) DEFAULT 1.0,
+  name VARCHAR NOT NULL,
+  category VARCHAR NOT NULL,
   description TEXT,
+  min_price DECIMAL(10,2) NOT NULL,
+  max_price DECIMAL(10,2),
+  points_multiplier DECIMAL(3,2) DEFAULT 1.0,
   is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Payment methods table
 CREATE TABLE payment_methods (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(100) NOT NULL,
-  type VARCHAR(50) NOT NULL CHECK (type IN ('cash', 'card', 'transfer', 'ewallet')),
+  name VARCHAR NOT NULL,
+  type VARCHAR NOT NULL,
+  bank VARCHAR,
   is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Transactions table
 CREATE TABLE transactions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  admin_id UUID NOT NULL REFERENCES admins(id),
-  payment_method_id UUID NOT NULL REFERENCES payment_methods(id),
-  total_amount INTEGER NOT NULL,
+  user_id UUID REFERENCES users(id),
+  admin_id UUID REFERENCES admins(id),
+  payment_method_id UUID REFERENCES payment_methods(id),
+  total_amount DECIMAL(10,2) NOT NULL,
   points_earned INTEGER NOT NULL,
-  payment_notes TEXT,
-  status VARCHAR(20) DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'cancelled')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  status VARCHAR DEFAULT 'completed',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Transaction services junction table (many-to-many)
+-- Transaction services (many-to-many)
 CREATE TABLE transaction_services (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  transaction_id UUID NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
-  service_id UUID NOT NULL REFERENCES services(id),
-  service_price INTEGER NOT NULL,
-  points_earned INTEGER NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  transaction_id UUID REFERENCES transactions(id),
+  service_id UUID REFERENCES services(id),
+  price DECIMAL(10,2) NOT NULL,
+  points_earned INTEGER NOT NULL
+);
+
+-- Points history
+CREATE TABLE points_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id),
+  transaction_id UUID REFERENCES transactions(id),
+  points_change INTEGER NOT NULL,
+  balance_after INTEGER NOT NULL,
+  type VARCHAR NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Rewards table
 CREATE TABLE rewards (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(255) NOT NULL,
+  name VARCHAR NOT NULL,
   description TEXT,
   points_required INTEGER NOT NULL,
-  category VARCHAR(50) DEFAULT 'general' CHECK (category IN ('discount', 'service', 'product', 'general')),
   is_active BOOLEAN DEFAULT true,
-  expiry_date TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Reward redemptions table
+-- Reward redemptions
 CREATE TABLE reward_redemptions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  reward_id UUID NOT NULL REFERENCES rewards(id),
+  user_id UUID REFERENCES users(id),
+  reward_id UUID REFERENCES rewards(id),
   points_used INTEGER NOT NULL,
-  status VARCHAR(20) DEFAULT 'used' CHECK (status IN ('pending', 'used', 'expired')),
-  redemption_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  expires_at TIMESTAMP WITH TIME ZONE
+  status VARCHAR DEFAULT 'pending',
+  redeemed_at TIMESTAMP DEFAULT NOW()
 );
 
--- Points history table (audit trail)
-CREATE TABLE points_history (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  transaction_id UUID REFERENCES transactions(id),
-  redemption_id UUID REFERENCES reward_redemptions(id),
-  points_change INTEGER NOT NULL, -- positive for earned, negative for spent
-  balance_after INTEGER NOT NULL,
-  reason VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Insert fixed customer account
+INSERT INTO users (id, email, full_name, phone, membership_level, total_points, total_visits, total_spent, qr_code) VALUES
+('550e8400-e29b-41d4-a716-446655440001', 'sari.dewi@example.com', 'Sari Dewi', '081234567890', 'Silver', 750, 15, 3200000, 'LOUVA_SD001_2024');
 
--- Indexes for better performance
-CREATE INDEX idx_customers_email ON customers(email);
-CREATE INDEX idx_customers_phone ON customers(phone);
-CREATE INDEX idx_customers_qr_code ON customers(qr_code);
-CREATE INDEX idx_customers_membership ON customers(membership_level);
-CREATE INDEX idx_transactions_customer_id ON transactions(customer_id);
+-- Insert fixed admin account
+INSERT INTO admins (id, email, full_name, role) VALUES
+('550e8400-e29b-41d4-a716-446655440002', 'maya.sari@louva.com', 'Maya Sari', 'manager');
+
+-- Insert default services
+INSERT INTO services (name, category, description, min_price, max_price, points_multiplier) VALUES
+('Haircut', 'Hair', 'Potongan rambut basic dengan styling', 50000, 75000, 1.0),
+('Hair Color', 'Hair', 'Pewarnaan rambut dengan produk premium', 150000, 300000, 1.2),
+('Hair Treatment', 'Hair', 'Perawatan rambut deep conditioning', 100000, 150000, 1.1),
+('Facial', 'Treatment', 'Perawatan wajah dasar', 80000, 120000, 1.0),
+('Massage', 'Treatment', 'Pijat relaksasi full body', 120000, 200000, 1.1),
+('Manicure', 'Nail Care', 'Perawatan kuku tangan basic', 60000, 90000, 1.0),
+('Pedicure', 'Nail Care', 'Perawatan kaki kaki basic', 60000, 90000, 1.0),
+('Nail Art', 'Nail Care', 'Seni kuku dengan desain custom', 100000, 200000, 1.2);
+
+-- Insert default payment methods
+INSERT INTO payment_methods (name, type, bank) VALUES
+('Cash', 'cash', NULL),
+('QRIS', 'qris', NULL),
+('Debit Mandiri', 'debit', 'mandiri'),
+('Debit BCA', 'debit', 'bca'),
+('Debit Other', 'debit', 'other'),
+('Credit Mandiri', 'credit', 'mandiri'),
+('Credit BCA', 'credit', 'bca'),
+('Credit Other', 'credit', 'other'),
+('GoPay', 'ewallet', 'gopay'),
+('OVO', 'ewallet', 'ovo'),
+('Dana', 'ewallet', 'dana'),
+('ShopeePay', 'ewallet', 'shopeepay');
+
+-- Insert sample rewards
+INSERT INTO rewards (name, description, points_required) VALUES
+('Gratis Haircut', 'Dapatkan potongan rambut gratis untuk semua jenis model', 500),
+('Diskon 20% Hair Treatment', 'Diskon 20% untuk semua treatment rambut premium', 300),
+('Gratis Manicure & Pedicure', 'Nikmati manicure dan pedicure gratis dengan produk premium', 800),
+('Voucher Rp 50.000', 'Voucher potongan Rp 50.000 untuk semua layanan', 250),
+('Package VIP Treatment', 'Paket lengkap treatment premium termasuk hair spa, facial, dan massage', 1500);
+
+-- Insert sample transactions
+INSERT INTO transactions (user_id, admin_id, payment_method_id, total_amount, points_earned, created_at) VALUES
+('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440002', 
+(SELECT id FROM payment_methods WHERE name = 'Cash' LIMIT 1), 200000, 200, '2024-01-20T14:30:00Z'),
+('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440002',
+(SELECT id FROM payment_methods WHERE name = 'GoPay' LIMIT 1), 150000, 150, '2024-01-18T10:15:00Z');
+
+-- Create indexes for better performance
+CREATE INDEX idx_users_qr_code ON users(qr_code);
+CREATE INDEX idx_transactions_user_id ON transactions(user_id);
 CREATE INDEX idx_transactions_created_at ON transactions(created_at);
-CREATE INDEX idx_transaction_services_transaction_id ON transaction_services(transaction_id);
-CREATE INDEX idx_transaction_services_service_id ON transaction_services(service_id);
-CREATE INDEX idx_rewards_points_required ON rewards(points_required);
-CREATE INDEX idx_reward_redemptions_customer_id ON reward_redemptions(customer_id);
-CREATE INDEX idx_points_history_customer_id ON points_history(customer_id);
-CREATE INDEX idx_points_history_created_at ON points_history(created_at);
+CREATE INDEX idx_points_history_user_id ON points_history(user_id);
 
--- RLS (Row Level Security) policies
-ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+-- Enable Row Level Security (RLS)
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transaction_services ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reward_redemptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE points_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reward_redemptions ENABLE ROW LEVEL SECURITY;
 
--- Customers can only see their own data
-CREATE POLICY "Users can view own profile" ON customers
-  FOR SELECT USING (auth.uid()::text = id::text);
+-- Create policies for public access
+CREATE POLICY "Allow all operations on users" ON users FOR ALL USING (true);
+CREATE POLICY "Allow all operations on admins" ON admins FOR ALL USING (true);
+CREATE POLICY "Allow all operations on transactions" ON transactions FOR ALL USING (true);
+CREATE POLICY "Allow all operations on points_history" ON points_history FOR ALL USING (true);
+CREATE POLICY "Allow all operations on reward_redemptions" ON reward_redemptions FOR ALL USING (true);
 
--- Customers can update their own profile
-CREATE POLICY "Users can update own profile" ON customers
-  FOR UPDATE USING (auth.uid()::text = id::text);
-
--- Customers can view their own transactions
-CREATE POLICY "Users can view own transactions" ON transactions
-  FOR SELECT USING (auth.uid()::text = customer_id::text);
-
--- Customers can view their own reward redemptions
-CREATE POLICY "Users can view own reward redemptions" ON reward_redemptions
-  FOR SELECT USING (auth.uid()::text = customer_id::text);
-
--- Customers can view their own points history
-CREATE POLICY "Users can view own points history" ON points_history
-  FOR SELECT USING (auth.uid()::text = customer_id::text);
-
--- Transaction services visibility through parent transaction
-CREATE POLICY "Transaction services visible through transaction" ON transaction_services
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM transactions
-      WHERE transactions.id = transaction_services.transaction_id
-      AND auth.uid()::text = transactions.customer_id::text
-    )
+-- Create trigger to update user points when transaction is created
+CREATE OR REPLACE FUNCTION update_user_points()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Update user's total points
+  UPDATE users 
+  SET total_points = total_points + NEW.points_earned,
+      total_visits = total_visits + 1,
+      total_spent = total_spent + NEW.total_amount,
+      updated_at = NOW()
+  WHERE id = NEW.user_id;
+  
+  -- Insert into points history
+  INSERT INTO points_history (user_id, transaction_id, points_change, balance_after, type, description)
+  VALUES (
+    NEW.user_id,
+    NEW.id,
+    NEW.points_earned,
+    (SELECT total_points FROM users WHERE id = NEW.user_id),
+    'earn',
+    'Points earned from transaction'
   );
-
--- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Triggers to automatically update updated_at
-CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_admins_updated_at BEFORE UPDATE ON admins
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_services_updated_at BEFORE UPDATE ON services
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_transactions_updated_at BEFORE UPDATE ON transactions
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_rewards_updated_at BEFORE UPDATE ON rewards
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Function to calculate customer's current membership level
-CREATE OR REPLACE FUNCTION get_membership_level(total_points INTEGER)
-RETURNS VARCHAR AS $$
-BEGIN
-  IF total_points >= 1000 THEN
-    RETURN 'Gold';
-  ELSIF total_points >= 500 THEN
-    RETURN 'Silver';
-  ELSE
-    RETURN 'Bronze';
-  END IF;
-END;
-$$ LANGUAGE plpgsql;
-
--- Function to automatically update customer membership level
-CREATE OR REPLACE FUNCTION update_customer_membership()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.membership_level = get_membership_level(NEW.total_points);
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger to update membership level when points change
-CREATE TRIGGER update_membership_on_points_change
-  BEFORE UPDATE ON customers
+CREATE TRIGGER trigger_update_user_points
+  AFTER INSERT ON transactions
   FOR EACH ROW
-  WHEN (OLD.total_points IS DISTINCT FROM NEW.total_points)
-  EXECUTE FUNCTION update_customer_membership();
-
--- Insert initial data for payment methods
-INSERT INTO payment_methods (name, type) VALUES
-('Cash', 'cash'),
-('Debit Card', 'card'),
-('Credit Card', 'card'),
-('Bank Transfer', 'transfer'),
-('GoPay', 'ewallet'),
-('OVO', 'ewallet'),
-('DANA', 'ewallet'),
-('QRIS', 'ewallet');
-
--- Insert initial admin user (Maya Sari)
-INSERT INTO admins (name, email, role, phone) VALUES
-('Maya Sari', 'maya.sari@louva.com', 'manager', '+628123456789');
-
--- Insert initial customer (Sari Dewi)
-INSERT INTO customers (name, email, phone, membership_level, total_points, qr_code) VALUES
-('Sari Dewi', 'sari.dewi@example.com', '+6281234567890', 'Silver', 2450, 'LOUVA_SD001_2024');
-
--- Insert initial services
-INSERT INTO services (name, category, price_min, price_max, point_multiplier, description) VALUES
--- Hair Services
-('Hair Cut', 'Hair', 75000, 150000, 1.0, 'Professional hair cutting service'),
-('Hair Color', 'Hair', 250000, 600000, 1.2, 'Professional hair coloring service'),
-('Hair Treatment', 'Hair', 150000, 400000, 1.1, 'Deep conditioning and treatment'),
-('Hair Spa', 'Hair', 200000, 350000, 1.1, 'Relaxing hair spa treatment'),
-('Keratin Therapy', 'Hair', 450000, 800000, 1.5, 'Brazilian keratin treatment'),
--- Treatment Services
-('Facial Treatment', 'Treatment', 150000, 300000, 1.1, 'Deep cleansing facial'),
-('Body Massage', 'Treatment', 200000, 400000, 1.1, 'Full body relaxation massage'),
-('Scalp Treatment', 'Treatment', 180000, 350000, 1.2, 'Deep scalp treatment'),
-('Manicure', 'Treatment', 80000, 150000, 1.0, 'Professional manicure service'),
-('Pedicure', 'Treatment', 100000, 180000, 1.0, 'Professional pedicure service'),
--- Nail Services
-('Gel Polish', 'Nail', 120000, 200000, 1.0, 'Long-lasting gel polish'),
-('Nail Art', 'Nail', 150000, 300000, 1.2, 'Creative nail art design'),
-('Nail Extensions', 'Nail', 200000, 400000, 1.3, 'Professional nail extensions');
-
--- Insert initial rewards
-INSERT INTO rewards (name, description, points_required, category, is_active) VALUES
-('10% Discount', 'Get 10% off on your next service', 500, 'discount', true),
-('Free Hair Cut', 'Complimentary hair cut service', 1000, 'service', true),
-('Hair Treatment Voucher', 'Free hair treatment session', 800, 'service', true),
-('15% Discount', 'Get 15% off on any service', 750, 'discount', true),
-('Product Discount', '20% off on salon products', 600, 'product', true),
-('VIP Service', 'Premium package with multiple services', 2000, 'service', true);
-
--- Insert sample transaction for testing
-INSERT INTO transactions (customer_id, admin_id, payment_method_id, total_amount, points_earned, payment_notes) VALUES
-(
-  (SELECT id FROM customers WHERE email = 'sari.dewi@example.com'),
-  (SELECT id FROM admins WHERE email = 'maya.sari@louva.com'),
-  (SELECT id FROM payment_methods WHERE name = 'Cash'),
-  250000,
-  250,
-  'Hair Color + Hair Treatment'
-);
-
--- Get the inserted transaction ID
-DO $$
-DECLARE
-  transaction_uuid UUID;
-BEGIN
-  SELECT id INTO transaction_uuid FROM transactions ORDER BY created_at DESC LIMIT 1;
-
-  -- Insert transaction services
-  INSERT INTO transaction_services (transaction_id, service_id, service_price, points_earned) VALUES
-  (transaction_uuid, (SELECT id FROM services WHERE name = 'Hair Color'), 200000, 200),
-  (transaction_uuid, (SELECT id FROM services WHERE name = 'Hair Treatment'), 50000, 50);
-
-  -- Insert points history
-  INSERT INTO points_history (customer_id, transaction_id, points_change, balance_after, reason) VALUES
-  (
-    (SELECT id FROM customers WHERE email = 'sari.dewi@example.com'),
-    transaction_uuid,
-    250,
-    (SELECT total_points FROM customers WHERE email = 'sari.dewi@example.com'),
-    'Hair Color + Hair Treatment'
-  );
-END $$;
+  EXECUTE FUNCTION update_user_points();

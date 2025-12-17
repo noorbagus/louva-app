@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     // Get customer profile
     const { data: customer, error } = await supabase
-      .from('customers')
+      .from('users')
       .select('*')
       .eq('id', FIXED_CUSTOMER_ID)
       .single()
@@ -38,8 +38,8 @@ export async function PUT(request: NextRequest) {
 
     // Update customer profile
     const { data: customer, error } = await supabase
-      .from('customers')
-      .update({ name, phone, email, updated_at: new Date().toISOString() })
+      .from('users')
+      .update({ full_name: name, phone, email, updated_at: new Date().toISOString() })
       .eq('id', FIXED_CUSTOMER_ID)
       .select()
       .single()

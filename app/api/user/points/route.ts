@@ -8,8 +8,8 @@ export async function GET(request: NextRequest) {
   try {
     // Get current customer points
     const { data: customer, error } = await supabase
-      .from('customers')
-      .select('total_points, membership_level')
+      .from('users')
+      .select('total_points, membership_level, total_visits, total_spent')
       .eq('id', FIXED_CUSTOMER_ID)
       .single()
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const { data: history, error: historyError } = await supabase
       .from('points_history')
       .select('*')
-      .eq('customer_id', FIXED_CUSTOMER_ID)
+      .eq('user_id', FIXED_CUSTOMER_ID)
       .order('created_at', { ascending: false })
       .limit(20)
 
@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       current_points: customer.total_points,
       membership_level: customer.membership_level,
+      total_visits: customer.total_visits,
+      total_spent: customer.total_spent,
       history: history
     })
   } catch (error) {
