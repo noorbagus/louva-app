@@ -37,10 +37,30 @@ export default function CustomerServicesPage() {
     : services.filter(s => s.category === selectedCategory)
 
   const categories = [
-    { id: 'all', name: 'Semua', icon: '⭐' },
-    { id: SERVICE_CATEGORIES.HAIR, name: 'Hair', icon: '💇' },
-    { id: SERVICE_CATEGORIES.TREATMENT, name: 'Treatment', icon: '🧖' },
-    { id: SERVICE_CATEGORIES.NAIL, name: 'Nail Care', icon: '💅' }
+    { 
+      id: 'all', 
+      name: 'Semua', 
+      icon: '⭐',
+      color: 'bg-primary-600/20 border-primary-600/30'
+    },
+    { 
+      id: SERVICE_CATEGORIES.HAIR, 
+      name: 'Hair', 
+      icon: '💇',
+      color: 'bg-blue-600/20 border-blue-600/30'
+    },
+    { 
+      id: SERVICE_CATEGORIES.TREATMENT, 
+      name: 'Treatment', 
+      icon: '🧖',
+      color: 'bg-purple-600/20 border-purple-600/30'
+    },
+    { 
+      id: SERVICE_CATEGORIES.NAIL, 
+      name: 'Nail Care', 
+      icon: '💅',
+      color: 'bg-pink-600/20 border-pink-600/30'
+    }
   ]
 
   if (isLoading) {
@@ -70,7 +90,7 @@ export default function CustomerServicesPage() {
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Category Filter */}
-        <Card variant="glass">
+        <Card variant="glass" className="bg-[#243442]/50">
           <CardContent className="pt-4">
             <div className="grid grid-cols-4 gap-2">
               {categories.map((category) => (
@@ -78,37 +98,41 @@ export default function CustomerServicesPage() {
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
                   className={`
-                    flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200
+                    flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 border
                     ${selectedCategory === category.id
-                      ? 'bg-primary-600/20 border border-primary-600/30'
-                      : 'bg-dark-700/30 border border-dark-600/30 hover:bg-dark-700/50'
+                      ? `${category.color} transform scale-105`
+                      : 'bg-dark-700/30 border-dark-600/30 hover:bg-dark-700/50 hover:border-dark-500/50'
                     }
                   `}
                 >
                   <span className="text-2xl mb-1">{category.icon}</span>
-                  <span className="text-xs text-dark-300">{category.name}</span>
+                  <span className="text-xs text-dark-300 font-medium">{category.name}</span>
                 </button>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Services Grid */}
+        {/* Services Header */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-dark-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-dark-100 flex items-center gap-2">
+              <span className="text-xl">
+                {categories.find(c => c.id === selectedCategory)?.icon}
+              </span>
               {categories.find(c => c.id === selectedCategory)?.name || 'Semua Layanan'}
             </h2>
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="bg-primary-600/20 text-primary-400">
               {filteredServices.length} layanan
             </Badge>
           </div>
 
           {filteredServices.length > 0 ? (
-            <ServiceGrid services={filteredServices} />
+            <ServiceGrid services={filteredServices} selectedCategory={selectedCategory === 'all' ? undefined : selectedCategory} />
           ) : (
             <Card variant="dark">
               <CardContent className="text-center py-8">
+                <div className="text-4xl mb-3">🔍</div>
                 <p className="text-dark-400">Tidak ada layanan di kategori ini</p>
               </CardContent>
             </Card>
@@ -122,7 +146,7 @@ export default function CustomerServicesPage() {
               <span className="text-2xl">ℹ️</span>
               <div className="flex-1">
                 <h3 className="text-dark-100 font-medium mb-1">Cara Mendapatkan Poin</h3>
-                <p className="text-dark-300 text-sm">
+                <p className="text-dark-300 text-sm leading-relaxed">
                   Setiap pembelian layanan akan mendapatkan poin. Bronze: 1x/1000, Silver: 1.2x/1000, Gold: 1.5x/1000
                 </p>
               </div>

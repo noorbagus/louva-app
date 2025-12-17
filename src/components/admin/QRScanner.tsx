@@ -108,28 +108,40 @@ export function QRScanner({ onScanSuccess, className }: QRScannerProps) {
   return (
     <div className={className}>
       {isScanning ? (
-        <Card variant="dark">
+        <Card variant="dark" className="bg-[#1a2832]">
           <CardContent className="p-6">
             <div className="text-center">
-              {/* Scanner Frame */}
+              {/* Enhanced Scanner Frame */}
               <div className="relative w-64 h-64 mx-auto mb-4">
-                <div className="absolute inset-0 bg-[#1a2832] rounded-lg border-2 border-[#93BEE1]">
+                <div className="absolute inset-0 bg-[#1a2832] rounded-lg border-2 border-[#93BEE1] animate-scanner-glow overflow-hidden">
                   {/* Animated Scan Line */}
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#93BEE1] to-transparent animate-[scan_2s_ease-in-out_infinite]"></div>
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#93BEE1] to-transparent animate-scan pointer-events-none"></div>
 
-                  {/* Corner Markers */}
-                  <div className="absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-[#93BEE1]"></div>
-                  <div className="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-[#93BEE1]"></div>
-                  <div className="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-[#93BEE1]"></div>
-                  <div className="absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-[#93BEE1]"></div>
+                  {/* Corner Markers with Animation */}
+                  <div className="absolute top-2 left-2 w-6 h-6 animate-scanner-pulse pointer-events-none">
+                    <div className="w-full h-0.5 bg-[#93BEE1]"></div>
+                    <div className="w-0.5 h-full bg-[#93BEE1] absolute top-0 left-0"></div>
+                  </div>
+                  <div className="absolute top-2 right-2 w-6 h-6 animate-scanner-pulse pointer-events-none">
+                    <div className="w-full h-0.5 bg-[#93BEE1]"></div>
+                    <div className="w-0.5 h-full bg-[#93BEE1] absolute top-0 right-0"></div>
+                  </div>
+                  <div className="absolute bottom-2 left-2 w-6 h-6 animate-scanner-pulse pointer-events-none">
+                    <div className="w-full h-0.5 bg-[#93BEE1] absolute bottom-0"></div>
+                    <div className="w-0.5 h-full bg-[#93BEE1] absolute bottom-0 left-0"></div>
+                  </div>
+                  <div className="absolute bottom-2 right-2 w-6 h-6 animate-scanner-pulse pointer-events-none">
+                    <div className="w-full h-0.5 bg-[#93BEE1] absolute bottom-0"></div>
+                    <div className="w-0.5 h-full bg-[#93BEE1] absolute bottom-0 right-0"></div>
+                  </div>
 
-                  <Camera className="absolute inset-0 m-auto w-16 h-16 text-[#6b7785]" />
+                  <Camera className="absolute inset-0 m-auto w-16 h-16 text-[#6b7785] opacity-30" />
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold text-white mb-2">Scanning QR Code...</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">Position QR code in frame</h3>
               <p className="text-[#b0b8c1] text-sm mb-4">
-                Position the QR code within the frame
+                Ask customer to show their loyalty card QR code
               </p>
 
               {/* Manual Input for Testing */}
@@ -142,14 +154,14 @@ export function QRScanner({ onScanSuccess, className }: QRScannerProps) {
                   className="w-full bg-[#0a1620] border border-[#2d3748] rounded-lg px-4 py-2 text-white placeholder-[#6b7785] text-sm"
                 />
                 <p className="text-xs text-[#6b7785] mt-1">
-                  Test data: LOUVAcust-0012024-01-20T12:00:00.000Zloyalty
+                  Test data: {"LOUVA"}cust-0012024-01-20T12:00:00.000Zloyalty
                 </p>
               </form>
 
               <Button
                 variant="secondary"
                 onClick={stopScanning}
-                className="w-full"
+                className="w-full text-[#b0b8c1] border-[#2d3748] hover:bg-[#243442]"
               >
                 Cancel Scanning
               </Button>
@@ -157,7 +169,7 @@ export function QRScanner({ onScanSuccess, className }: QRScannerProps) {
           </CardContent>
         </Card>
       ) : (
-        <Card variant="glass">
+        <Card variant="glass" className="bg-[#243442]/50">
           <CardContent className="text-center py-8">
             <div className="w-20 h-20 rounded-full bg-[#93BEE1]/20 flex items-center justify-center mx-auto mb-4">
               <Camera className="w-10 h-10 text-[#93BEE1]" />

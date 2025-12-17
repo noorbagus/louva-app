@@ -24,7 +24,7 @@ export function CustomerInfo({
   const lifetimeValue = customer.total_points * 1000 // Assuming 1 point = Rp 1000
 
   return (
-    <Card variant="dark" className={className}>
+    <Card variant="dark" className={`bg-[#1a2832] ${className}`}>
       <CardContent className="p-5">
         {/* Customer Header */}
         <div className="flex items-center gap-4 mb-4">
@@ -77,13 +77,13 @@ export function CustomerInfo({
           )}
         </div>
 
-        {/* Customer Stats */}
-        <div className="grid grid-cols-3 gap-3 bg-[#0a1620] rounded-lg p-3">
+        {/* Customer Stats - Enhanced Layout */}
+        <div className="grid grid-cols-3 gap-3 bg-[#0a1620] rounded-lg p-4 mb-4">
           <div className="text-center">
             <p className="text-xl font-bold text-[#93BEE1]">{customer.total_points.toLocaleString('id-ID')}</p>
             <p className="text-xs text-[#6b7785] mt-1">Current Points</p>
           </div>
-          <div className="text-center">
+          <div className="text-center border-l border-r border-[#2d3748] px-2">
             <p className="text-xl font-bold text-white">15</p>
             <p className="text-xs text-[#6b7785] mt-1">Total Visits</p>
           </div>
@@ -94,21 +94,21 @@ export function CustomerInfo({
         </div>
 
         {/* Customer Details */}
-        <div className="mt-4 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-[#6b7785]">Phone</span>
+        <div className="space-y-3 text-sm">
+          <div className="flex justify-between items-center py-2 border-b border-[#2d3748]/50">
+            <span className="text-[#6b7785] font-medium">Phone</span>
             <span className="text-white">{customer.phone}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-[#6b7785]">Email</span>
+          <div className="flex justify-between items-center py-2 border-b border-[#2d3748]/50">
+            <span className="text-[#6b7785] font-medium">Email</span>
             <span className="text-white">{customer.email}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-[#6b7785]">Member Since</span>
+          <div className="flex justify-between items-center py-2 border-b border-[#2d3748]/50">
+            <span className="text-[#6b7785] font-medium">Member Since</span>
             <span className="text-white">{formatDate(customer.created_at)}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-[#6b7785]">Last Visit</span>
+          <div className="flex justify-between items-center py-2">
+            <span className="text-[#6b7785] font-medium">Last Visit</span>
             <span className="text-white">{formatDate(customer.last_visit || customer.created_at)}</span>
           </div>
         </div>

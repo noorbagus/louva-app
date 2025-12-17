@@ -9,7 +9,7 @@ import { Modal } from '@/components/shared/Modal'
 import { Input } from '@/components/shared/Input'
 import { formatCurrency } from '@/lib/utils'
 import { DEFAULT_SERVICES, SERVICE_CATEGORIES } from '@/lib/constants'
-import { Plus, Edit, Trash2, X, Search, Spa, ContentCut, Colorize } from 'lucide-react'
+import { Plus, Edit, Trash2, X, Search, Scissors, Heart, Palette } from 'lucide-react'
 import type { Service } from '@/lib/types'
 
 // Mock data
@@ -25,10 +25,22 @@ const mockServices: Service[] = DEFAULT_SERVICES.map((service, index) => ({
   updated_at: new Date().toISOString()
 }))
 
-const categoryIcons = {
-  [SERVICE_CATEGORIES.HAIR]: <ContentCut className="w-5 h-5" />,
-  [SERVICE_CATEGORIES.TREATMENT]: <Spa className="w-5 h-5" />,
-  [SERVICE_CATEGORIES.NAIL]: <Colorize className="w-5 h-5" />
+const categoryConfig = {
+  [SERVICE_CATEGORIES.HAIR]: {
+    icon: <Scissors className="w-5 h-5" />,
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-400/20'
+  },
+  [SERVICE_CATEGORIES.TREATMENT]: {
+    icon: <Heart className="w-5 h-5" />,
+    color: 'text-purple-400',
+    bgColor: 'bg-purple-400/20'
+  },
+  [SERVICE_CATEGORIES.NAIL]: {
+    icon: <Palette className="w-5 h-5" />,
+    color: 'text-pink-400',
+    bgColor: 'bg-pink-400/20'
+  }
 }
 
 export default function ServiceManagementPage() {
@@ -48,7 +60,6 @@ export default function ServiceManagementPage() {
   })
 
   useEffect(() => {
-    // Simulate API call
     setTimeout(() => {
       setServices(mockServices)
       setFilteredServices(mockServices)
@@ -59,12 +70,10 @@ export default function ServiceManagementPage() {
   useEffect(() => {
     let filtered = services
 
-    // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(s => s.category === selectedCategory)
     }
 
-    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(service =>
         service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,7 +94,6 @@ export default function ServiceManagementPage() {
     const multiplier = parseFloat(newServiceForm.point_multiplier.toString())
 
     if (editingService) {
-      // Update existing service
       setServices(services.map(s =>
         s.service_id === editingService.service_id
           ? {
@@ -100,7 +108,6 @@ export default function ServiceManagementPage() {
           : s
       ))
     } else {
-      // Add new service
       const newService: Service = {
         service_id: `svc-${Date.now()}`,
         name: newServiceForm.name,
@@ -115,7 +122,6 @@ export default function ServiceManagementPage() {
       setServices([newService, ...services])
     }
 
-    // Reset form
     setNewServiceForm({
       name: '',
       category: SERVICE_CATEGORIES.HAIR,
@@ -143,16 +149,6 @@ export default function ServiceManagementPage() {
     if (confirm('Are you sure you want to delete this service?')) {
       setServices(services.filter(s => s.service_id !== serviceId))
     }
-  }
-
-  const handleEditClick = (e: React.MouseEvent, service: Service) => {
-    e.stopPropagation()
-    handleEditService(service)
-  }
-
-  const handleDeleteClick = (e: React.MouseEvent, serviceId: string) => {
-    e.stopPropagation()
-    handleDeleteService(serviceId)
   }
 
   if (isLoading) {
@@ -232,21 +228,24 @@ export default function ServiceManagementPage() {
           </CardContent>
         </Card>
 
-        {/* Service List */}
+        {/* Service List by Category */}
         {Object.values(SERVICE_CATEGORIES).map((category) => {
           const categoryServices = filteredServices.filter(s => s.category === category)
           if (categoryServices.length === 0) return null
+          const config = categoryConfig[category]
 
           return (
             <div key={category} className="mb-6">
               <div className="flex items-center gap-2 mb-3 px-2">
-                {categoryIcons[category]}
+                <div className={`w-8 h-8 rounded-lg ${config.bgColor} flex items-center justify-center`}>
+                  <div className={config.color}>{config.icon}</div>
+                </div>
                 <span className="text-[#93BEE1] font-semibold">{category}</span>
               </div>
               <div className="space-y-2">
                 {categoryServices.map((service) => {
                   const minPrice = service.price
-                  const maxPrice = service.price * 1.5 // Assume range for demo
+                  const maxPrice = service.price * 1.5
                   const pointsRange = `${Math.floor(minPrice / 1000)}-${Math.floor(maxPrice / 1000)}`
 
                   return (
@@ -268,7 +267,7 @@ export default function ServiceManagementPage() {
                               variant="secondary"
                               size="sm"
                               icon={<Edit className="w-4 h-4" />}
-                              onClick={(e) => handleEditClick(e, service)}
+                              onClick={() => handleEditService(service)}
                               className="text-[#93BEE1] border-[#93BEE1] hover:bg-[#93BEE1]/10"
                             >
                               Edit
@@ -277,7 +276,7 @@ export default function ServiceManagementPage() {
                               variant="secondary"
                               size="sm"
                               icon={<Trash2 className="w-4 h-4" />}
-                              onClick={(e) => handleDeleteClick(e, service.service_id)}
+                              onClick={() => handleDeleteService(service.service_id)}
                               className="text-red-400 border-red-400 hover:bg-red-400/10"
                             >
                               Delete

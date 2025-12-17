@@ -95,7 +95,7 @@ export function TransactionForm({
       />
 
       {selectedPayment && (
-        <Card variant="dark" className="mb-6">
+        <Card variant="dark" className="mb-6 bg-[#1a2832]">
           <CardContent className="p-4">
             <label className="block text-white text-sm font-medium mb-2">
               Payment Notes (Optional)
@@ -111,18 +111,18 @@ export function TransactionForm({
       )}
 
       {selectedServices.length > 0 && selectedPayment && (
-        <Card variant="glass" className="bg-gradient-to-r from-[#93BEE1]/10 to-[#7ba6d3]/10">
-          <CardContent className="p-4">
-            <div className="space-y-2">
+        <Card variant="glass" className="bg-gradient-to-r from-[#93BEE1]/10 to-[#7ba6d3]/10 border-[#93BEE1]/20">
+          <CardContent className="p-5">
+            <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-[#b0b8c1]">Subtotal</span>
-                <span className="text-white">{formatCurrency(totalAmount)}</span>
+                <span className="text-white font-medium">{formatCurrency(totalAmount)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-[#b0b8c1]">Points to Earn</span>
-                <span className="text-[#00d4aa]">+{pointsEarned} pts</span>
+                <span className="text-[#00d4aa] font-medium">+{pointsEarned} pts</span>
               </div>
-              <div className="border-t border-[#2d3748] pt-2 mt-2">
+              <div className="border-t border-[#2d3748] pt-3 mt-3">
                 <div className="flex justify-between">
                   <span className="text-white font-semibold">Total</span>
                   <span className="text-white font-bold text-lg">{formatCurrency(totalAmount)}</span>
@@ -134,7 +134,8 @@ export function TransactionForm({
               variant="primary"
               onClick={handleProcessTransaction}
               disabled={isProcessing}
-              className="w-full mt-4 bg-gradient-to-r from-[#93BEE1] to-[#7ba6d3] hover:from-[#7ba6d3] hover:to-[#93BEE1]"
+              loading={isProcessing}
+              className="w-full mt-5 bg-gradient-to-r from-[#93BEE1] to-[#7ba6d3] hover:from-[#7ba6d3] hover:to-[#93BEE1] h-12"
             >
               {isProcessing ? 'Processing...' : 'Process Transaction'}
             </Button>
