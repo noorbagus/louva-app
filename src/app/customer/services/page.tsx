@@ -15,7 +15,6 @@ export default function CustomerServicesPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate API call
     const mockServices: Service[] = DEFAULT_SERVICES.map((service, index) => ({
       service_id: `svc-${String(index + 1).padStart(3, '0')}`,
       name: service.name,
@@ -37,116 +36,88 @@ export default function CustomerServicesPage() {
     : services.filter(s => s.category === selectedCategory)
 
   const categories = [
-    { 
-      id: 'all', 
-      name: 'Semua', 
-      icon: '⭐',
-      color: 'bg-primary-600/20 border-primary-600/30'
-    },
-    { 
-      id: SERVICE_CATEGORIES.HAIR, 
-      name: 'Hair', 
-      icon: '💇',
-      color: 'bg-blue-600/20 border-blue-600/30'
-    },
-    { 
-      id: SERVICE_CATEGORIES.TREATMENT, 
-      name: 'Treatment', 
-      icon: '🧖',
-      color: 'bg-purple-600/20 border-purple-600/30'
-    },
-    { 
-      id: SERVICE_CATEGORIES.NAIL, 
-      name: 'Nail Care', 
-      icon: '💅',
-      color: 'bg-pink-600/20 border-pink-600/30'
-    }
+    { id: 'all', name: 'All', icon: 'star' },
+    { id: SERVICE_CATEGORIES.HAIR, name: 'Hair', icon: 'content_cut' },
+    { id: SERVICE_CATEGORIES.TREATMENT, name: 'Treatments', icon: 'spa' },
+    { id: SERVICE_CATEGORIES.NAIL, name: 'Nail Care', icon: 'colorize' }
   ]
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p className="text-dark-300">Memuat layanan...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+          <p className="text-[var(--text-secondary)]">Memuat layanan...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900">
+    <div className="min-h-screen bg-[var(--surface)]">
       {/* Header */}
-      <div className="bg-dark-800/50 backdrop-blur-lg border-b border-dark-700 sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-3">
-          <div className="flex items-center gap-3">
-            <a href="/customer" className="text-dark-300 hover:text-dark-100">
-              ←
-            </a>
-            <h1 className="text-xl font-semibold text-dark-100">Layanan Kami</h1>
+      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white">
+        <div className="max-w-md mx-auto px-5 py-6">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => window.history.back()} 
+              className="text-white hover:text-white/80 transition-colors"
+            >
+              <i className="material-icons text-xl">arrow_back</i>
+            </button>
+            <h1 className="text-xl font-semibold">Services</h1>
           </div>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-md mx-auto px-5 py-6 space-y-6">
         {/* Category Filter */}
-        <Card variant="glass" className="bg-[#243442]/50">
-          <CardContent className="pt-4">
-            <div className="grid grid-cols-4 gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`
-                    flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 border
-                    ${selectedCategory === category.id
-                      ? `${category.color} transform scale-105`
-                      : 'bg-dark-700/30 border-dark-600/30 hover:bg-dark-700/50 hover:border-dark-500/50'
-                    }
-                  `}
-                >
-                  <span className="text-2xl mb-1">{category.icon}</span>
-                  <span className="text-xs text-dark-300 font-medium">{category.name}</span>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Services Header */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-dark-100 flex items-center gap-2">
-              <span className="text-xl">
-                {categories.find(c => c.id === selectedCategory)?.icon}
-              </span>
-              {categories.find(c => c.id === selectedCategory)?.name || 'Semua Layanan'}
-            </h2>
-            <Badge variant="secondary" className="bg-primary-600/20 text-primary-400">
-              {filteredServices.length} layanan
-            </Badge>
-          </div>
-
-          {filteredServices.length > 0 ? (
-            <ServiceGrid services={filteredServices} selectedCategory={selectedCategory === 'all' ? undefined : selectedCategory} />
-          ) : (
-            <Card variant="dark">
-              <CardContent className="text-center py-8">
-                <div className="text-4xl mb-3">🔍</div>
-                <p className="text-dark-400">Tidak ada layanan di kategori ini</p>
-              </CardContent>
-            </Card>
-          )}
+        <div className="grid grid-cols-4 gap-3">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategory(category.id)}
+              className={`
+                flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200
+                ${selectedCategory === category.id
+                  ? 'bg-[var(--primary)]/20 border-[var(--primary)]/30 text-[var(--primary)]'
+                  : 'bg-[var(--surface-light)] border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--surface-lighter)]'
+                }
+              `}
+            >
+              <i className="material-icons text-2xl mb-2">{category.icon}</i>
+              <span className="text-xs font-medium">{category.name}</span>
+            </button>
+          ))}
         </div>
 
+        {/* Services by Category */}
+        {Object.entries(SERVICE_CATEGORIES).map(([key, categoryName]) => {
+          const categoryServices = services.filter(s => s.category === categoryName)
+          if (selectedCategory !== 'all' && selectedCategory !== categoryName) return null
+          
+          return (
+            <div key={key} className="service-category">
+              <div className="category-title flex items-center gap-2 mb-4">
+                <i className="material-icons text-xl text-[var(--primary)]">
+                  {categoryName === 'Hair' ? 'content_cut' : 
+                   categoryName === 'Treatment' ? 'spa' : 'colorize'}
+                </i>
+                <span className="font-semibold text-[var(--text-primary)]">{categoryName}</span>
+              </div>
+              <ServiceGrid services={categoryServices} />
+            </div>
+          )
+        })}
+
         {/* Info Card */}
-        <Card variant="glass" className="bg-gradient-to-r from-primary-500/10 to-primary-600/10 border-primary-500/20">
+        <Card variant="glass" className="bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary-light)]/10 border-[var(--primary)]/20">
           <CardContent className="py-4">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">ℹ️</span>
-              <div className="flex-1">
-                <h3 className="text-dark-100 font-medium mb-1">Cara Mendapatkan Poin</h3>
-                <p className="text-dark-300 text-sm leading-relaxed">
+              <i className="material-icons text-2xl text-[var(--primary)]">info</i>
+              <div>
+                <h3 className="text-[var(--text-primary)] font-medium mb-1">Cara Mendapatkan Poin</h3>
+                <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
                   Setiap pembelian layanan akan mendapatkan poin. Bronze: 1x/1000, Silver: 1.2x/1000, Gold: 1.5x/1000
                 </p>
               </div>

@@ -16,48 +16,31 @@ export default function CustomerHomePage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadCustomerData = async () => {
       try {
         setLoading(true)
-        setError(null)
-
-        // Fetch customer profile
         const customerData = await customerAPI.getProfile()
-        // Map API response to expected Customer interface format
         const mappedCustomer: Customer = {
           ...customerData,
-          name: customerData.full_name, // Map full_name to name
-          customer_id: customerData.id, // Map id to customer_id
-          last_visit: customerData.updated_at // Map updated_at to last_visit
+          name: customerData.full_name,
+          customer_id: customerData.id,
+          last_visit: customerData.updated_at
         }
         setCustomer(mappedCustomer)
 
-        // Fetch recent transactions
         const transactionsData = await customerAPI.getTransactions()
-        // Map API response and get last 3 transactions
-        const mappedTransactions = transactionsData.slice(0, 3).map((transaction: any) => ({
-          ...transaction,
-          transaction_id: transaction.id, // Map id to transaction_id
-          customer_id: transaction.user_id // Map user_id to customer_id
-        }))
-        setRecentTransactions(mappedTransactions)
-
+        setRecentTransactions(transactionsData.slice(0, 3))
       } catch (err) {
-        console.error('Error loading customer data:', err)
-        setError(err instanceof Error ? err.message : 'Gagal memuat data')
-
-        // Fallback to mock data if API fails
-        // This ensures the app remains functional even if API is down
+        // Fallback data
         const fallbackCustomer: Customer = {
           id: '550e8400-e29b-41d4-a716-446655440001',
           customer_id: '550e8400-e29b-41d4-a716-446655440001',
           name: 'Sari Dewi',
           phone: '081234567890',
           email: 'sari.dewi@example.com',
-          total_points: 750,
+          total_points: 2450,
           membership_level: 'Silver',
           total_visits: 15,
           total_spent: 3200000,
@@ -66,23 +49,7 @@ export default function CustomerHomePage() {
           updated_at: '2025-12-17T14:04:08.068454Z',
           last_visit: '2025-12-17T14:04:08.068454Z'
         }
-
         setCustomer(fallbackCustomer)
-        setRecentTransactions([
-          {
-            id: '550e8400-e29b-41d4-a716-446655440001',
-            transaction_id: '550e8400-e29b-41d4-a716-446655440001',
-            customer_id: '550e8400-e29b-41d4-a716-446655440001',
-            user_id: '550e8400-e29b-41d4-a716-446655440001',
-            admin_id: '550e8400-e29b-41d4-a716-446655440002',
-            payment_method_id: '7fe642cf-4caa-4e81-9716-67d07b56d44a',
-            total_amount: 75000,
-            points_earned: 90,
-            status: 'completed',
-            created_at: '2025-12-17T14:30:00Z',
-            updated_at: '2025-12-17T14:30:00Z'
-          }
-        ])
       } finally {
         setLoading(false)
       }
@@ -93,162 +60,87 @@ export default function CustomerHomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p className="text-dark-300">Memuat data...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+          <p className="text-[var(--text-secondary)]">Memuat data...</p>
         </div>
       </div>
     )
   }
 
-  if (error && !customer) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 flex items-center justify-center">
-        <div className="text-center px-4">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">⚠️</span>
-          </div>
-          <p className="text-red-400 mb-2">Error: {error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-          >
-            Coba Lagi
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (!customer) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-dark-400">Data tidak tersedia</p>
-        </div>
-      </div>
-    )
-  }
+  if (!customer) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900">
+    <div className="min-h-screen bg-[var(--surface)]">
       {/* Header */}
-      <div className="bg-dark-800/50 backdrop-blur-lg border-b border-dark-700 sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-dark-100">
-                Halo, {customer.name.split(' ')[0]}! 👋
-              </h1>
-              <p className="text-sm text-dark-400">
-                {formatDate(customer.last_visit || customer.created_at)}
-              </p>
-            </div>
-            <Link href="/customer/account">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold">
-                {customer.name.split(' ').map(n => n[0]).join('')}
+      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden">
+        <div className="absolute top-0 right-[-50px] w-[120px] h-[120px] bg-white/10 rounded-full transform translate-x-5 -translate-y-5"></div>
+        
+        <div className="max-w-md mx-auto px-5 py-6 relative z-10">
+          {/* User Info */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 border-2 border-white/30 rounded-xl flex items-center justify-center text-xl backdrop-blur-lg">
+                <i className="material-icons">person</i>
               </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-1">{customer.name}</h3>
+                <div className="bg-white/20 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-lg">
+                  {customer.membership_level} Member
+                </div>
+              </div>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center font-bold text-base backdrop-blur-lg">
+              L
+            </div>
+          </div>
+
+          {/* Points Section */}
+          <div className="flex justify-between items-center">
+            <div>
+              <span className="text-2xl font-bold block mb-1">{customer.total_points.toLocaleString('id-ID')}</span>
+              <span className="text-xs opacity-90 font-medium">points</span>
+            </div>
+            <Link href="/customer/services">
+              <button className="bg-[var(--secondary)] text-white px-4 py-2 rounded-full font-semibold text-xs">
+                Services
+              </button>
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        {/* Points Display */}
-        <PointsDisplay customer={customer} />
-
-        {/* Quick Actions */}
-        <Card variant="glass" className="bg-[#243442]/50">
-          <CardHeader>
-            <h2 className="text-lg font-semibold text-dark-100">Aksi Cepat</h2>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-3">
-            <Link href="/customer/qr">
-              <Button variant="primary" className="w-full h-14 flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transform hover:scale-105 transition-all duration-200">
-                <span className="text-xl">📱</span>
-                <span className="text-sm font-medium">QR Saya</span>
-              </Button>
-            </Link>
-            <Link href="/customer/services">
-              <Button variant="secondary" className="w-full h-14 flex flex-col items-center justify-center gap-1 bg-dark-700 hover:bg-dark-600 transform hover:scale-105 transition-all duration-200">
-                <span className="text-xl">💇</span>
-                <span className="text-sm font-medium">Layanan</span>
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        {/* Featured Services */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-dark-100">Layanan Populer</h2>
-            <Link href="/customer/services">
-              <span className="text-primary-400 text-sm hover:text-primary-300">Lihat semua →</span>
-            </Link>
+      <div className="max-w-md mx-auto px-5 py-5 space-y-5">
+        {/* Promo Banner */}
+        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 relative overflow-hidden">
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">Weekend Special</h3>
+            <p className="text-sm text-[var(--text-secondary)]">Double points untuk semua hair treatments setiap weekend</p>
           </div>
-          <ServiceGrid
-            services={DEFAULT_SERVICES.map((service, index) => ({
-              service_id: `svc-${String(index + 1).padStart(3, '0')}`,
-              name: service.name,
-              category: service.category,
-              price: service.price,
-              point_multiplier: service.pointMultiplier,
-              description: service.description,
-              is_active: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })).slice(0, 4)}
-          />
+          <div className="absolute right-[-20px] top-[-20px] w-[100px] h-[100px] bg-[var(--primary)]/10 rounded-full"></div>
         </div>
 
-        {/* Recent Transactions */}
-        <Card variant="dark" className="bg-[#1a2832]">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-dark-100">Transaksi Terakhir</h2>
-              <Link href="/customer/account">
-                <span className="text-primary-400 text-sm hover:text-primary-300">Lihat semua →</span>
-              </Link>
+        {/* Badges Section */}
+        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5">
+          <div className="flex items-center gap-3">
+            <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
+            <div>
+              <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Badges & Achievements</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Collect badges and unlock more rewards</p>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {recentTransactions.map((transaction) => (
-              <div key={transaction.transaction_id} className="flex items-center justify-between py-2 border-b border-dark-700/50 last:border-0">
-                <div className="flex-1">
-                  <p className="text-dark-200 text-sm font-medium">
-                    {DEFAULT_SERVICES.find(s => s.name.toLowerCase().includes('haircut'))?.name || 'Haircut'}
-                  </p>
-                  <p className="text-dark-400 text-xs">
-                    {formatDate(transaction.created_at)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-dark-100 text-sm font-medium">
-                    {formatCurrency(transaction.total_amount)}
-                  </p>
-                  <Badge variant="success" size="sm">
-                    +{transaction.points_earned} poin
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Membership Promotion */}
-        {customer.membership_level === 'Bronze' && (
-          <Card variant="glass" className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border-amber-500/20">
-            <CardContent className="text-center py-4">
-              <p className="text-amber-400 text-sm font-medium mb-1">
-                🌟 Upgrade ke Silver!
-              </p>
-              <p className="text-dark-300 text-xs">
-                Dapatkan {500 - customer.total_points} poin lagi untuk nikmati 1.2x poin multiplier
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Quick Actions */}
+        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 text-center">
+          <h3 className="text-base font-semibold mb-4 text-[var(--text-primary)]">Ready for your appointment?</h3>
+          <Link href="/customer/qr">
+            <button className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white w-full py-4 rounded-xl font-semibold text-base shadow-[0_4px_15px_rgba(74,139,194,0.3)] hover:shadow-[0_8px_25px_rgba(74,139,194,0.4)] hover:-translate-y-0.5 transition-all duration-300">
+              Show QR Code
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   )

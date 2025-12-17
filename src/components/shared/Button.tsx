@@ -19,13 +19,13 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-900'
+  const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent'
 
   const variants = {
-    primary: 'bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500',
-    secondary: 'bg-dark-700 hover:bg-dark-600 text-white focus:ring-dark-500',
-    outline: 'border border-dark-600 hover:border-dark-500 text-dark-200 hover:text-white focus:ring-dark-500',
-    ghost: 'text-dark-400 hover:text-white hover:bg-dark-800 focus:ring-dark-500'
+    primary: 'bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] hover:shadow-[0_8px_25px_rgba(74,139,194,0.4)] text-white focus:ring-[var(--primary)] shadow-[0_4px_15px_rgba(74,139,194,0.3)]',
+    secondary: 'bg-[var(--secondary)] hover:bg-[var(--secondary-light)] text-white focus:ring-[var(--secondary)]',
+    outline: 'border border-[var(--border)] hover:border-[var(--primary)] text-[var(--text-secondary)] hover:text-white focus:ring-[var(--primary)]',
+    ghost: 'text-[var(--text-muted)] hover:text-white hover:bg-[var(--surface-light)] focus:ring-[var(--primary)]'
   }
 
   const sizes = {
@@ -41,6 +41,7 @@ export function Button({
         variants[variant],
         sizes[size],
         (disabled || loading) && 'opacity-50 cursor-not-allowed',
+        variant === 'primary' && 'hover:transform hover:-translate-y-0.5',
         className
       )}
       disabled={disabled || loading}
