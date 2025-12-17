@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase, supabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Direct supabase client creation
+const supabaseUrl = 'https://znsmbtnlfqdumnrmvijh.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc'
+const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTk3MzQwNiwiZXhwIjoyMDgxNTQ5NDA2fQ.NAAyUacn3xdKsf15vOETFXuCx6P86LxqdMvQwy__QW4'
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
 // Fixed admin account for prototype
 const FIXED_ADMIN_ID = '550e8400-e29b-41d4-a716-446655440002'
@@ -8,14 +16,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const {
-      customer_id,
+      user_id,
       service_ids,
       payment_method_id,
-      payment_notes,
+      notes,
       service_prices
     } = body
 
-    if (!customer_id || !service_ids || !payment_method_id || !service_prices) {
+    if (!user_id || !service_ids || !payment_method_id || !service_prices) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -24,9 +32,9 @@ export async function POST(request: NextRequest) {
 
     // Get customer info
     const { data: customer, error: customerError } = await supabase
-      .from('customers')
+      .from('users')
       .select('*')
-      .eq('id', customer_id)
+      .eq('id', user_id)
       .single()
 
     if (customerError || !customer) {
@@ -57,14 +65,14 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < service_ids.length; i++) {
       const serviceId = service_ids[i]
       const service = services.find(s => s.id === serviceId)
-      const servicePrice = service_prices[i] || service.price_min
+      const servicePrice = service_prices[i] || service.min_price
 
       if (service) {
-        const pointsEarned = Math.floor(servicePrice / 1000 * service.point_multiplier)
+        const pointsEarned = Math.floor(servicePrice / 1000 * service.points_multiplier)
 
         transactionServices.push({
           service_id: serviceId,
-          service_price: servicePrice,
+          price: servicePrice,
           points_earned: pointsEarned
         })
 
@@ -87,12 +95,12 @@ export async function POST(request: NextRequest) {
     const { data: transaction, error: transactionError } = await supabaseAdmin
       .from('transactions')
       .insert({
-        customer_id,
+        user_id,
         admin_id: FIXED_ADMIN_ID,
         payment_method_id,
         total_amount: totalAmount,
         points_earned: totalPointsEarned,
-        payment_notes: payment_notes || '',
+        notes: notes || '',
         status: 'completed'
       })
       .select()
@@ -113,7 +121,7 @@ export async function POST(request: NextRequest) {
         .insert({
           transaction_id: transaction.id,
           service_id: ts.service_id,
-          service_price: ts.service_price,
+          price: ts.price,
           points_earned: ts.points_earned
         })
 
@@ -125,13 +133,14 @@ export async function POST(request: NextRequest) {
     // Update customer points
     const newPointsBalance = customer.total_points + totalPointsEarned
     const { error: updateError } = await supabaseAdmin
-      .from('customers')
+      .from('users')
       .update({
         total_points: newPointsBalance,
-        last_visit: new Date().toISOString(),
+        total_visits: customer.total_visits + 1,
+        total_spent: customer.total_spent + totalAmount,
         updated_at: new Date().toISOString()
       })
-      .eq('id', customer_id)
+      .eq('id', user_id)
 
     if (updateError) {
       console.error('Error updating customer points:', updateError)
@@ -145,11 +154,12 @@ export async function POST(request: NextRequest) {
     const { error: historyError } = await supabaseAdmin
       .from('points_history')
       .insert({
-        customer_id,
+        user_id,
         transaction_id: transaction.id,
         points_change: totalPointsEarned,
         balance_after: newPointsBalance,
-        reason: 'Transaction: ' + services.map(s => s.name).join(', ')
+        type: 'earn',
+        description: 'Transaction: ' + services.map(s => s.name).join(', ')
       })
 
     if (historyError) {
@@ -177,7 +187,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const customerId = searchParams.get('customer_id')
+    const customerId = searchParams.get('user_id') || searchParams.get('customer_id')
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
@@ -187,7 +197,7 @@ export async function GET(request: NextRequest) {
         *,
         transaction_services (
           service_id,
-          service_price,
+          price,
           points_earned,
           services (
             name,
@@ -204,7 +214,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (customerId) {
-      query = query.eq('customer_id', customerId)
+      query = query.eq('user_id', customerId)
     }
 
     const { data: transactions, error } = await query

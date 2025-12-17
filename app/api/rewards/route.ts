@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Direct supabase client creation
+const supabaseUrl = 'https://znsmbtnlfqdumnrmvijh.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc'
+const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTk3MzQwNiwiZXhwIjoyMDgxNTQ5NDA2fQ.NAAyUacn3xdKsf15vOETFXuCx6P86LxqdMvQwy__QW4'
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
 // Fixed customer account for prototype
 const FIXED_CUSTOMER_ID = '550e8400-e29b-41d4-a716-446655440001'
@@ -38,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Get customer points
     const { data: customer, error: customerError } = await supabase
-      .from('customers')
+      .from('users')
       .select('total_points')
       .eq('id', FIXED_CUSTOMER_ID)
       .single()
@@ -78,12 +86,11 @@ export async function POST(request: NextRequest) {
     const { data: redemption, error: redemptionError } = await supabase
       .from('reward_redemptions')
       .insert({
-        customer_id: FIXED_CUSTOMER_ID,
+        user_id: FIXED_CUSTOMER_ID,
         reward_id: reward_id,
         points_used: reward.points_required,
-        status: 'used',
-        redemption_date: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+        status: 'completed',
+        redeemed_at: new Date().toISOString()
       })
       .select()
       .single()
@@ -99,7 +106,7 @@ export async function POST(request: NextRequest) {
     // Update customer points
     const newPointsBalance = customer.total_points - reward.points_required
     const { error: updateError } = await supabase
-      .from('customers')
+      .from('users')
       .update({
         total_points: newPointsBalance,
         updated_at: new Date().toISOString()
@@ -118,11 +125,12 @@ export async function POST(request: NextRequest) {
     const { error: historyError } = await supabase
       .from('points_history')
       .insert({
-        customer_id: FIXED_CUSTOMER_ID,
-        redemption_id: redemption.id,
+        user_id: FIXED_CUSTOMER_ID,
+        reward_id: redemption.id,
         points_change: -reward.points_required,
         balance_after: newPointsBalance,
-        reason: `Redeemed: ${reward.name}`
+        type: 'redeem',
+        description: `Redeemed: ${reward.name}`
       })
 
     if (historyError) {

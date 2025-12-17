@@ -11,6 +11,7 @@ import type { Customer, Reward, Redemption } from '@/lib/types'
 
 // Mock data for prototype
 const mockCustomer: Customer = {
+  id: 'cust-001',
   customer_id: 'cust-001',
   name: 'Sari Dewi',
   phone: '+628123456789',
@@ -214,7 +215,7 @@ export default function CustomerRewardsPage() {
                           <Button
                             variant={canRedeem && !isExpired ? "primary" : "secondary"}
                             size="sm"
-                            disabled={!canRedeem || isExpired}
+                            disabled={!canRedeem || !!isExpired}
                             onClick={() => handleRedeemReward(reward)}
                           >
                             {isExpired ? 'Kadaluarsa' : canRedeem ? 'Tukar' : 'Poin Kurang'}

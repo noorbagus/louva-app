@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Direct supabase client creation
+const supabaseUrl = 'https://znsmbtnlfqdumnrmvijh.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc'
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,36 +18,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate QR code format (LOUVA_[USER_ID]_[TIMESTAMP])
-    const qrPattern = /^LOUVA_(.+)_(\d+)$/
-    const match = qr_code.match(qrPattern)
+    // Try to find customer by QR code directly first (for static QR codes)
+    let customer = null
+    let error = null
 
-    if (!match) {
-      return NextResponse.json(
-        { error: 'Invalid QR code format' },
-        { status: 400 }
-      )
-    }
-
-    const [, userId, timestamp] = match
-    const qrTimestamp = parseInt(timestamp)
-    const currentTime = Date.now()
-    const fiveMinutes = 5 * 60 * 1000
-
-    // Check if QR code is expired (5 minutes)
-    if (currentTime - qrTimestamp > fiveMinutes) {
-      return NextResponse.json(
-        { error: 'QR code has expired' },
-        { status: 400 }
-      )
-    }
-
-    // Find customer by QR code
-    const { data: customer, error } = await supabase
-      .from('customers')
+    // Direct lookup for static QR codes
+    const { data: directCustomer, error: directError } = await supabase
+      .from('users')
       .select('*')
       .eq('qr_code', qr_code)
       .single()
+
+    if (directCustomer) {
+      customer = directCustomer
+    } else {
+      // Try timestamp-based QR format (LOUVA_[USER_ID]_[TIMESTAMP])
+      const qrPattern = /^LOUVA_(.+)_(\d+)$/
+      const match = qr_code.match(qrPattern)
+
+      if (!match) {
+        return NextResponse.json(
+          { error: 'Invalid QR code format' },
+          { status: 400 }
+        )
+      }
+
+      const [, userId, timestamp] = match
+      const qrTimestamp = parseInt(timestamp)
+      const currentTime = Date.now()
+      const fiveMinutes = 5 * 60 * 1000
+
+      // Check if QR code is expired (5 minutes)
+      if (currentTime - qrTimestamp > fiveMinutes) {
+        return NextResponse.json(
+          { error: 'QR code has expired' },
+          { status: 400 }
+        )
+      }
+
+      // Find customer by user ID for timestamp QR codes
+      const { data: timestampCustomer, error: timestampError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      customer = timestampCustomer
+      error = timestampError
+    }
 
     if (error || !customer) {
       return NextResponse.json(
@@ -55,12 +78,12 @@ export async function POST(request: NextRequest) {
       valid: true,
       customer: {
         id: customer.id,
-        name: customer.name,
+        name: customer.full_name,
         email: customer.email,
         phone: customer.phone,
         membership_level: customer.membership_level,
         total_points: customer.total_points,
-        last_visit: customer.last_visit
+        last_visit: customer.updated_at
       }
     })
   } catch (error) {

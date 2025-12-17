@@ -1,17 +1,25 @@
+import { PAYMENT_METHODS, SERVICE_CATEGORIES } from './constants'
+
 export type MembershipLevel = 'Bronze' | 'Silver' | 'Gold'
 export type PaymentMethod = typeof PAYMENT_METHODS[number]['id']
 export type ServiceCategory = typeof SERVICE_CATEGORIES[keyof typeof SERVICE_CATEGORIES]
 
 export interface Customer {
+  id: string
   customer_id: string
   name: string
   phone: string
   email: string
+  full_name?: string
   profile_url?: string
   total_points: number
   membership_level: MembershipLevel
+  total_visits?: number
+  total_spent?: number
   card_url?: string
+  qr_code?: string
   created_at: string
+  updated_at?: string
   last_visit?: string
 }
 
@@ -38,12 +46,17 @@ export interface Service {
 }
 
 export interface Transaction {
+  id: string
   transaction_id: string
   customer_id: string
-  service_id: string
-  payment_method: PaymentMethod
+  user_id?: string
+  admin_id: string
+  service_id?: string
+  payment_method_id?: string
+  payment_method?: PaymentMethod
   total_amount: number
   points_earned: number
+  status: string
   staff_id?: string
   notes?: string
   created_at: string

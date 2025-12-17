@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase, supabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Direct supabase client creation
+const supabaseUrl = 'https://znsmbtnlfqdumnrmvijh.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc'
+const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTk3MzQwNiwiZXhwIjoyMDgxNTQ5NDA2fQ.NAAyUacn3xdKsf15vOETFXuCx6P86LxqdMvQwy__QW4'
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,13 +18,13 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
 
     let query = supabase
-      .from('customers')
+      .from('users')
       .select('*')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
+      query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
     }
 
     if (membership && membership !== 'all') {
@@ -35,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     // Get customer counts for stats
     const { data: stats, error: statsError } = await supabase
-      .from('customers')
+      .from('users')
       .select('membership_level')
 
     let statsData = { total: customers?.length || 0, bronze: 0, silver: 0, gold: 0 }
@@ -76,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     // Check if customer already exists
     const { data: existingCustomer, error: checkError } = await supabase
-      .from('customers')
+      .from('users')
       .select('id')
       .or(`email.eq.${email},phone.eq.${phone}`)
       .single()
@@ -101,9 +109,9 @@ export async function POST(request: NextRequest) {
 
     // Create new customer
     const { data: customer, error } = await supabaseAdmin
-      .from('customers')
+      .from('users')
       .insert({
-        name,
+        full_name: name,
         email,
         phone,
         membership_level: 'Bronze',

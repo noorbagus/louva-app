@@ -10,6 +10,7 @@ import type { Customer } from '@/lib/types'
 
 // Mock data for prototype
 const mockCustomer: Customer = {
+  id: 'cust-001',
   customer_id: 'cust-001',
   name: 'Sari Dewi',
   phone: '+628123456789',

@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Direct supabase client creation
+const supabaseUrl = 'https://znsmbtnlfqdumnrmvijh.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc'
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // Get total customers
     const { data: totalCustomers, error: customersError } = await supabase
-      .from('customers')
+      .from('users')
       .select('id', { count: 'exact' })
 
     // Get active customers (last 30 days)
@@ -34,13 +39,13 @@ export async function GET(request: NextRequest) {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
     const { data: activeCustomers, error: activeCustomersError } = await supabase
-      .from('customers')
+      .from('users')
       .select('id', { count: 'exact' })
-      .gte('last_visit', thirtyDaysAgo.toISOString())
+      .gte('updated_at', thirtyDaysAgo.toISOString())
 
     // Get new customers (in selected period)
     const { data: newCustomers, error: newCustomersError } = await supabase
-      .from('customers')
+      .from('users')
       .select('id', { count: 'exact' })
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
@@ -58,7 +63,7 @@ export async function GET(request: NextRequest) {
     const previousEndDate = new Date(startDate)
 
     const { data: previousPeriodCustomers, error: previousPeriodError } = await supabase
-      .from('customers')
+      .from('users')
       .select('id', { count: 'exact' })
       .gte('created_at', previousStartDate.toISOString())
       .lte('created_at', previousEndDate.toISOString())
@@ -67,7 +72,7 @@ export async function GET(request: NextRequest) {
     const { data: topServicesData, error: topServicesError } = await supabase
       .from('transaction_services')
       .select(`
-        service_price,
+        price,
         services!inner (
           name
         )
@@ -88,10 +93,10 @@ export async function GET(request: NextRequest) {
       : '0'
 
     // Process top services
-    const serviceStats = {}
+    const serviceStats: Record<string, any> = {}
     if (topServicesData) {
-      topServicesData.forEach(ts => {
-        const serviceName = ts.services.name
+      topServicesData.forEach((ts: any) => {
+        const serviceName = ts.services?.name || 'Unknown Service'
         if (!serviceStats[serviceName]) {
           serviceStats[serviceName] = {
             name: serviceName,
@@ -100,7 +105,7 @@ export async function GET(request: NextRequest) {
           }
         }
         serviceStats[serviceName].bookings += 1
-        serviceStats[serviceName].revenue += ts.service_price
+        serviceStats[serviceName].revenue += ts.price || 0
       })
     }
 
@@ -113,8 +118,8 @@ export async function GET(request: NextRequest) {
       .from('transactions')
       .select(`
         *,
-        customers!inner (
-          name
+        users!inner (
+          full_name
         )
       `)
       .eq('status', 'completed')
@@ -123,13 +128,13 @@ export async function GET(request: NextRequest) {
 
     // Get membership distribution
     const { data: membershipData, error: membershipError } = await supabase
-      .from('customers')
+      .from('users')
       .select('membership_level')
 
-    const membershipStats = { bronze: 0, silver: 0, gold: 0 }
+    const membershipStats: Record<string, number> = { bronze: 0, silver: 0, gold: 0 }
     if (membershipData) {
-      membershipData.forEach(c => {
-        const level = c.membership_level.toLowerCase()
+      membershipData.forEach((c: any) => {
+        const level = c.membership_level?.toLowerCase() || 'bronze'
         if (membershipStats[level] !== undefined) {
           membershipStats[level]++
         }

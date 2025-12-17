@@ -1,62 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-// Check if Supabase is configured
-const isSupabaseConfigured = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  return supabaseUrl &&
-         supabaseAnonKey &&
-         serviceRoleKey &&
-         !supabaseUrl.includes('[your-project-id]') &&
-         !supabaseAnonKey.includes('...')
-}
+// Direct supabase client creation
+const supabaseUrl = 'https://znsmbtnlfqdumnrmvijh.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc'
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export async function GET(request: NextRequest) {
   try {
-    // Check if Supabase is configured
-    if (!isSupabaseConfigured()) {
-      return NextResponse.json({
-        status: 'configuration_error',
-        message: 'Supabase credentials not configured',
-        instructions: {
-          step1: 'Create a Supabase project at https://supabase.com',
-          step2: 'Copy credentials from Settings → API',
-          step3: 'Update .env.local with your credentials',
-          step4: 'Execute database/schema.sql in Supabase SQL Editor'
-        },
-        current_env_status: {
-          url_configured: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-          key_configured: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-          service_key_configured: !!process.env.SUPABASE_SERVICE_ROLE_KEY
-        }
-      }, { status: 400 })
-    }
-
-    // Import supabase only if configured
-    let supabase
-    if (isSupabaseConfigured()) {
-      const { supabase: sb } = require('@/lib/supabase')
-      supabase = sb
-    }
-
-    if (!supabase) {
-      return NextResponse.json({
-        status: 'configuration_error',
-        message: 'Supabase credentials not configured',
-        instructions: {
-          step1: 'Create a Supabase project at https://supabase.com',
-          step2: 'Copy credentials from Settings → API',
-          step3: 'Update .env.local with your credentials',
-          step4: 'Execute database/schema.sql in Supabase SQL Editor'
-        }
-      }, { status: 400 })
-    }
-
     // Test Supabase connection
     const { data, error } = await supabase
-      .from('customers')
+      .from('users')
       .select('count')
       .limit(1)
 

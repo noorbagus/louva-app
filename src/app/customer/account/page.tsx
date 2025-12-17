@@ -13,6 +13,7 @@ import { Camera, Edit, LogOut, Settings, ChevronRight } from 'lucide-react'
 
 // Mock data for prototype
 const mockCustomer: Customer = {
+  id: 'cust-001',
   customer_id: 'cust-001',
   name: 'Sari Dewi',
   phone: '+628123456789',
@@ -25,32 +26,41 @@ const mockCustomer: Customer = {
 
 const mockTransactions: Transaction[] = [
   {
+    id: 'txn-001',
     transaction_id: 'txn-001',
     customer_id: 'cust-001',
+    admin_id: 'admin-001',
     service_id: 'svc-001',
     payment_method: 'gopay',
     total_amount: 50000,
     points_earned: 50,
+    status: 'completed',
     created_at: '2024-01-20T14:30:00Z',
     updated_at: '2024-01-20T14:30:00Z'
   },
   {
+    id: 'txn-002',
     transaction_id: 'txn-002',
     customer_id: 'cust-001',
+    admin_id: 'admin-001',
     service_id: 'svc-003',
     payment_method: 'cash',
     total_amount: 100000,
     points_earned: 100,
+    status: 'completed',
     created_at: '2024-01-18T10:15:00Z',
     updated_at: '2024-01-18T10:15:00Z'
   },
   {
+    id: 'txn-003',
     transaction_id: 'txn-003',
     customer_id: 'cust-001',
+    admin_id: 'admin-001',
     service_id: 'svc-005',
     payment_method: 'ovo',
     total_amount: 80000,
     points_earned: 80,
+    status: 'completed',
     created_at: '2024-01-15T16:45:00Z',
     updated_at: '2024-01-15T16:45:00Z'
   }
