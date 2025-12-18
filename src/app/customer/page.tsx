@@ -175,7 +175,15 @@ export default function CustomerHomePage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Header - FIXED: Increased z-index to z-50 */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden sticky top-0 z-50">
+      <div 
+        className="sticky-header bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden sticky top-0 z-50"
+        style={{ 
+          position: 'sticky', 
+          top: 0, 
+          zIndex: 50,
+          willChange: 'transform'
+        }}
+      >
         <div className="absolute top-0 right-[-50px] w-[120px] h-[120px] bg-white/10 rounded-full transform translate-x-5 -translate-y-5"></div>
         
         <div className="max-w-md mx-auto px-5 py-6 relative z-10">

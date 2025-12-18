@@ -1,7 +1,7 @@
 export const SERVICE_CATEGORIES = {
   HAIR: 'Hair',
   TREATMENT: 'Treatment',
-  NAIL: 'Nail Care'
+  NAIL: 'Nail'
 } as const
 
 export const PAYMENT_METHODS = [

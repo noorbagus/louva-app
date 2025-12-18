@@ -102,7 +102,7 @@ export default function CustomerServicesPage() {
                 <i className="material-icons text-xl text-[var(--primary)]">
                   {categoryName === 'Hair' ? 'content_cut' : 
                    categoryName === 'Treatment' ? 'spa' : 
-                   categoryName === 'Nail Care' ? 'colorize' : 'spa'}
+                   categoryName === 'Nail' ? 'colorize' : 'spa'}
                 </i>
                 <h2 className="text-lg font-semibold text-[var(--text-primary)]">{categoryName}</h2>
               </div>
@@ -117,7 +117,7 @@ export default function CustomerServicesPage() {
                             <i className="material-icons text-[var(--primary)]">
                               {service.category === 'Hair' ? 'content_cut' :
                                service.category === 'Treatment' ? 'spa' :
-                               service.category === 'Nail Care' ? 'colorize' : 'spa'}
+                               service.category === 'Nail' ? 'colorize' : 'spa'}
                             </i>
                           </div>
                           <div>
