@@ -194,6 +194,34 @@
     color: var(--primary-light);
   }
 
+  /* Navigation icons - white for active, gray for inactive */
+  nav a[class*="text-[var(--primary)]"] .material-icons,
+  nav a[class*="text-[var(--primary)]"] span,
+  .nav-tab.active .material-icons,
+  .bottom-nav .active .material-icons {
+    color: #ffffff !important;
+  }
+
+  nav a[class*="text-[var(--text-muted)]"] .material-icons,
+  nav a[class*="text-[var(--text-muted)]"] span,
+  .nav-tab:not(.active) .material-icons,
+  .bottom-nav :not(.active) .material-icons {
+    color: #6b7785 !important;
+  }
+
+  /* Navigation text - white for active, gray for inactive */
+  nav a[class*="text-[var(--primary)]"] span,
+  .nav-tab.active span,
+  .bottom-nav .active span {
+    color: #ffffff !important;
+  }
+
+  nav a[class*="text-[var(--text-muted)]"] span,
+  .nav-tab:not(.active) span,
+  .bottom-nav :not(.active) span {
+    color: #6b7785 !important;
+  }
+
   /* Button components */
   .btn-primary {
     background: linear-gradient(135deg, var(--primary), var(--primary-light));
@@ -279,7 +307,27 @@
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
+/* All icons white except navigation */
+.material-icons:not(nav .material-icons) {
+  color: rgb(105, 210, 255) !important;
+}
+button .material-icons.text-lg {
+  color: #ffffff !important;
+}
+.grid .text-lg.font-bold {
+  color:  rgb(105, 210, 255) !important;
+}
+/* Rewards page points number white */
+.text-3xl.font-bold {
+  color:  rgb(105, 210, 255) !important;
+}
 
+/* Service icons, dashboard icons, etc. */
+.service-icon,
+.dashboard-icon,
+.admin-icon {
+  color: #ffffff !important;
+}
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-5px); }
@@ -288,7 +336,10 @@
   .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  
 }
+
 
 ::-webkit-scrollbar {
   width: 6px;
@@ -316,3 +367,4 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+

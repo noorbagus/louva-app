@@ -205,7 +205,7 @@ export default function CustomerQRPage() {
             size="lg"
             className="w-full shadow-lg hover:shadow-xl"
           >
-            <span className="material-icons text-lg">qr_code_2</span>
+            <span className="material-icons text-lg" style={{color: '#ffffff !important'}}>qr_code_2</span>
             Show QR Code
           </Button>
 

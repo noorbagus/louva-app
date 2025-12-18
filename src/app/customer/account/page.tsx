@@ -119,7 +119,9 @@ export default function CustomerAccountPage() {
               <div className="text-xs text-[var(--text-muted)] mt-1">Total Visits</div>
             </div>
             <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
-              <div className="text-lg font-bold text-[var(--primary)]">{(customer.total_spent || 0).toLocaleString('id-ID')}</div>
+            <div className="text-lg font-bold text-[var(--primary)]">
+              {((customer.total_spent || 0) / 1000).toLocaleString('id-ID')} K
+            </div>
               <div className="text-xs text-[var(--text-muted)] mt-1">Total Spent (Rp)</div>
             </div>
             <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">

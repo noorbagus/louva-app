@@ -6,6 +6,7 @@ import { CustomerInfo } from './CustomerInfo'
 import { ServiceSelector } from './ServiceSelector'
 import { PaymentSelector } from './PaymentSelector'
 import { Card } from '@/components/shared/Card'
+import { clearCustomerCache } from '@/lib/cache'
 
 interface TransactionFormProps {
   customer: Customer
@@ -50,9 +51,6 @@ export function TransactionForm({ customer }: TransactionFormProps) {
     setProcessing(true)
 
     try {
-      // Get admin ID from fixed account
-      const adminId = '550e8400-e29b-41d4-a716-446655440002'
-
       // Create transaction
       const response = await fetch('/api/transactions', {
         method: 'POST',
@@ -69,6 +67,9 @@ export function TransactionForm({ customer }: TransactionFormProps) {
       const data = await response.json()
 
       if (data.transaction) {
+        // Clear customer cache after successful transaction
+        clearCustomerCache()
+        
         // Show success message and redirect
         alert('Transaction completed successfully! Customer earned ' + data.customer.total_points.toLocaleString() + ' points.')
         window.location.href = '/admin'

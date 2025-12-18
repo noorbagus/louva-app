@@ -38,7 +38,7 @@ export default function CustomerServicesPage() {
     { id: 'all', name: 'All', icon: 'star' },
     { id: SERVICE_CATEGORIES.HAIR, name: 'Hair', icon: 'content_cut' },
     { id: SERVICE_CATEGORIES.TREATMENT, name: 'Treatments', icon: 'spa' },
-    { id: SERVICE_CATEGORIES.NAIL, name: 'Nail Care', icon: 'colorize' }
+    { id: SERVICE_CATEGORIES.NAIL, name: 'Nail', icon: 'colorize' }
   ]
 
   if (isLoading) {
