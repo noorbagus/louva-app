@@ -14,31 +14,17 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Debug logs
+  console.log('🔍 ServiceSelector render:', {
+    selectedServicesCount: selectedServices.length,
+    selectedServiceIds: selectedServices.map(s => s.id),
+    activeMissionsCount: activeMissions.length,
+    servicesCount: services.length
+  })
+
   useEffect(() => {
     fetchServices()
   }, [])
-
-  // Auto-select mission services when missions are loaded
-  useEffect(() => {
-    if (activeMissions.length > 0 && services.length > 0) {
-      const missionServiceIds = activeMissions.map(mission => mission.service_id).filter(Boolean)
-
-      if (missionServiceIds.length > 0) {
-        missionServiceIds.forEach(serviceId => {
-          const service = services.find(s => s.service_id === serviceId)
-          if (service && !isServiceSelected(serviceId)) {
-            const selectedService: SelectedService = {
-              id: service.service_id,
-              name: service.name,
-              price: service.price,
-              points: Math.floor(service.price / 1000 * service.point_multiplier)
-            }
-            onServiceToggle(selectedService)
-          }
-        })
-      }
-    }
-  }, [activeMissions, services, selectedServices])
 
   const fetchServices = async () => {
     try {
@@ -50,20 +36,20 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
 
       if (error) throw error
 
-      // Transform to match Service type
-      const transformedServices = data.map(s => ({
-        id: s.service_id,
-        service_id: s.service_id,
-        name: s.name,
-        category: s.category as any,
-        price: s.min_price,
-        point_multiplier: s.points_multiplier,
-        description: s.description || '',
-        is_active: s.is_active,
-        created_at: s.created_at,
-        updated_at: s.updated_at || new Date().toISOString()
-      }))
+const transformedServices = data.map(s => ({
+  id: s.id,              // ← Fixed: use s.id instead of s.service_id
+  service_id: s.id,      // ← Fixed: use s.id instead of s.service_id
+  name: s.name,
+  category: s.category as any,
+  price: s.min_price,
+  point_multiplier: s.points_multiplier,
+  description: s.description || '',
+  is_active: s.is_active,
+  created_at: s.created_at,
+  updated_at: s.updated_at || new Date().toISOString()
+}))
 
+      console.log('🔍 Services fetched:', transformedServices.length)
       setServices(transformedServices as any)
     } catch (error) {
       console.error('Error fetching services:', error)
@@ -73,17 +59,29 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
   }
 
   const handleServiceClick = (service: Service) => {
+    console.log('🔍 Service clicked:', {
+      serviceId: service.service_id,
+      serviceName: service.name,
+      currentlySelected: selectedServices.some(s => s.id === service.service_id),
+      isMissionService: activeMissions.some(m => m.service_id === service.service_id)
+    })
+
     const selectedService: SelectedService = {
-      id: service.id,
+      id: service.service_id,
       name: service.name,
       price: service.price,
-      points: Math.floor(service.price / 1000 * service.point_multiplier)
+      points: Math.floor(service.price / 1000 * service.point_multiplier),
+      isMissionService: activeMissions.some(m => m.service_id === service.service_id)
     }
+
+    console.log('🔍 Calling onServiceToggle with:', selectedService)
     onServiceToggle(selectedService)
   }
 
   const isServiceSelected = (serviceId: string) => {
-    return selectedServices.some(s => s.id === serviceId)
+    const selected = selectedServices.some(s => s.id === serviceId)
+    console.log(`🔍 isServiceSelected(${serviceId}):`, selected)
+    return selected
   }
 
   const groupServicesByCategory = (services: Service[]) => {
@@ -99,6 +97,7 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
   const categoryIcons = {
     'Hair': 'content_cut',
     'Treatment': 'spa',
+    'Nail Care': 'colorize',
     'Nail': 'colorize'
   }
 
@@ -111,7 +110,7 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-[var(--text-primary)]">Select Services</h2>
-
+      
       {Object.entries(groupedServices).map(([category, categoryServices]) => (
         <div key={category}>
           <div className="flex items-center gap-2 mb-3 px-1">
@@ -123,17 +122,18 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
 
           <div className="space-y-2">
             {categoryServices.map((service) => {
-              const isSelected = isServiceSelected(service.id)
+              const isSelected = isServiceSelected(service.service_id)
               const points = Math.floor(service.price / 1000 * service.point_multiplier)
-              const serviceId = service.id
-
-              // Check if this service has an active mission
+              const serviceId = service.service_id
               const missionForService = activeMissions.find(m => m.service_id === serviceId)
 
               return (
                 <div
                   key={serviceId}
-                  onClick={() => handleServiceClick(service)}
+                  onClick={() => {
+                    console.log('🔍 DIV clicked for service:', serviceId)
+                    handleServiceClick(service)
+                  }}
                   className={`bg-[var(--surface-light)] border rounded-2xl p-4 cursor-pointer transition-all ${
                     isSelected
                       ? 'border-[var(--accent)] bg-[var(--surface-lighter)]'
@@ -149,9 +149,12 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
                             🎯 +{missionForService.bonus_points}
                           </span>
                         )}
+                        {isSelected && (
+                          <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">SELECTED</span>
+                        )}
                       </div>
                       <p className="text-sm text-[var(--text-muted)]">
-                        {`Rp ${service.price.toLocaleString()}`}
+                        Rp {service.price.toLocaleString()}
                       </p>
                     </div>
                     <div className="text-right">

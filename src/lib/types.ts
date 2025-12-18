@@ -46,6 +46,14 @@ export interface Service {
   updated_at: string
 }
 
+export interface SelectedService {
+  id: string
+  name: string
+  price: number
+  points: number
+  isMissionService?: boolean
+}
+
 export interface Transaction {
   id: string
   transaction_id: string
@@ -132,43 +140,6 @@ export interface PaymentMethodConfig {
   name: string
   type: 'cash' | 'qris' | 'debit' | 'credit' | 'transfer'
   bank?: string
-  icon: string
+  fee?: number
   is_active: boolean
-  created_at: string
-}
-
-export interface SelectedService {
-  id: string
-  name: string
-  price: number
-  points: number
-}
-
-export interface TransactionFormData {
-  customerId: string
-  services: SelectedService[]
-  paymentMethodId: string
-  notes?: string
-}
-
-export interface NotificationData {
-  id: string
-  title: string
-  content: string
-  targetAudience: 'all' | 'silver' | 'gold' | 'inactive'
-  sentAt: string
-  deliveredCount: number
-}
-
-export interface CustomerAnalytics {
-  totalCustomers: number
-  activeCustomers: number
-  newCustomers: number
-  retentionRate: number
-  averageSpend: number
-  membershipDistribution: {
-    gold: { count: number; percentage: number }
-    silver: { count: number; percentage: number }
-    bronze: { count: number; percentage: number }
-  }
 }
