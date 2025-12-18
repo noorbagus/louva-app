@@ -142,4 +142,5 @@ export interface PaymentMethodConfig {
   bank?: string
   fee?: number
   is_active: boolean
+  icon?: string 
 }
