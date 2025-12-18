@@ -7,15 +7,38 @@ import { supabase } from '@/lib/supabase-frontend'
 interface ServiceSelectorProps {
   selectedServices: SelectedService[]
   onServiceToggle: (service: SelectedService) => void
+  activeMissions?: any[]
 }
 
-export function ServiceSelector({ selectedServices, onServiceToggle }: ServiceSelectorProps) {
+export function ServiceSelector({ selectedServices, onServiceToggle, activeMissions = [] }: ServiceSelectorProps) {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchServices()
   }, [])
+
+  // Auto-select mission services when missions are loaded
+  useEffect(() => {
+    if (activeMissions.length > 0 && services.length > 0) {
+      const missionServiceIds = activeMissions.map(mission => mission.service_id).filter(Boolean)
+
+      if (missionServiceIds.length > 0) {
+        missionServiceIds.forEach(serviceId => {
+          const service = services.find(s => s.id === serviceId)
+          if (service && !isServiceSelected(serviceId)) {
+            const selectedService: SelectedService = {
+              id: service.id,
+              name: service.name,
+              price: service.price,
+              points: Math.floor(service.price / 1000 * service.point_multiplier)
+            }
+            onServiceToggle(selectedService)
+          }
+        })
+      }
+    }
+  }, [activeMissions, services, selectedServices])
 
   const fetchServices = async () => {
     try {
@@ -102,10 +125,14 @@ export function ServiceSelector({ selectedServices, onServiceToggle }: ServiceSe
             {categoryServices.map((service) => {
               const isSelected = isServiceSelected((service as any).id)
               const points = Math.floor(service.price / 1000 * service.point_multiplier)
+              const serviceId = (service as any).id
+
+              // Check if this service has an active mission
+              const missionForService = activeMissions.find(m => m.service_id === serviceId)
 
               return (
                 <div
-                  key={(service as any).id}
+                  key={serviceId}
                   onClick={() => handleServiceClick(service)}
                   className={`bg-[var(--surface-light)] border rounded-2xl p-4 cursor-pointer transition-all ${
                     isSelected
@@ -113,9 +140,16 @@ export function ServiceSelector({ selectedServices, onServiceToggle }: ServiceSe
                       : 'border-[var(--border)] hover:bg-[var(--surface-lighter)] hover:border-[var(--accent)]'
                   }`}
                 >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="font-medium text-[var(--text-primary)]">{service.name}</h4>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-[var(--text-primary)]">{service.name}</h4>
+                        {missionForService && (
+                          <span className="inline-flex items-center px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full">
+                            🎯 +{missionForService.bonus_points}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-[var(--text-muted)]">
                         {`Rp ${service.price.toLocaleString()}`}
                       </p>

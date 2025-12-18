@@ -104,7 +104,15 @@ export default function MissionsPage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white sticky top-0 z-10">
+      <div
+        className="text-white"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 20,
+          background: 'linear-gradient(to right, #4A8BC2, #5A9BD4)'
+        }}
+      >
         <div className="max-w-md mx-auto px-5 py-6">
           <div className="flex items-center gap-4">
             <button onClick={() => window.history.back()} className="text-white">

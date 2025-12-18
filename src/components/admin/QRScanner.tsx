@@ -120,6 +120,11 @@ export function QRScanner({ onScanSuccess }: { onScanSuccess: (customerData: any
         setCustomer(data.customer)
         onScanSuccess(data.customer)
 
+        // Store mission data in session storage for transaction form
+        if (data.active_missions && data.active_missions.length > 0) {
+          sessionStorage.setItem('scanned_missions', JSON.stringify(data.active_missions))
+        }
+
         // Auto-redirect to transaction after showing customer briefly
         setTimeout(() => {
           router.push('/admin/transaction')

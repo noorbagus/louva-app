@@ -6,9 +6,9 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/customer', label: 'Home', icon: 'home' },
-  { href: '/customer/services', label: 'Services', icon: 'spa' },
+  { href: '/customer/missions', label: 'Missions', icon: 'flag' },
   { href: '/customer/qr', label: 'My card', icon: 'credit_card' },
-  { href: '/customer/rewards', label: 'Rewards', icon: 'card_giftcard' },
+  { href: '/customer/services', label: 'Services', icon: 'spa' },
   { href: '/customer/account', label: 'Account', icon: 'person' },
 ]
 

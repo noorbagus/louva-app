@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Customer } from '@/lib/types'
+import { MissionCard } from '@/components/customer/MissionCard'
+import { ChallengeCard } from '@/components/customer/ChallengeCard'
+import { RewardCard } from '@/components/customer/RewardCard'
+import { Card } from '@/components/shared/Card'
 
 const FIXED_CUSTOMER_ID = '550e8400-e29b-41d4-a716-446655440001'
 
@@ -30,6 +34,75 @@ export default function CustomerHomePage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
+  const [activeMissions, setActiveMissions] = useState<any[]>([])
+  const [challenges, setChallenges] = useState<any[]>([])
+  const [featuredRewards, setFeaturedRewards] = useState<any[]>([])
+
+  // Load missions and challenges data
+  const loadMissionsData = async () => {
+    try {
+      // Load missions
+      const missionsResponse = await fetch(`/api/missions?user_id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
+      if (missionsResponse.ok) {
+        const missionsData = await missionsResponse.json()
+        setActiveMissions(missionsData.missions?.filter((m: any) => m.user_status === 'active') || [])
+      }
+
+      // Load challenges (mock data for now)
+      setChallenges([
+        {
+          id: '1',
+          title: 'Weekend Warrior',
+          description: 'Complete 3 services this weekend',
+          reward_points: 150,
+          progress: 2,
+          target: 3,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+          is_active: true,
+          difficulty: 'medium'
+        },
+        {
+          id: '2',
+          title: 'Service Explorer',
+          description: 'Try 3 different service categories',
+          reward_points: 200,
+          progress: 1,
+          target: 3,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          is_active: true,
+          difficulty: 'easy'
+        }
+      ])
+
+      // Load featured rewards (mock data for now)
+      setFeaturedRewards([
+        {
+          id: '1',
+          title: 'Free Hair Treatment',
+          description: 'Premium hair treatment session',
+          points_required: 500,
+          category: 'service',
+          is_available: true,
+          popular: true
+        },
+        {
+          id: '2',
+          title: '20% Off Next Service',
+          description: 'Get 20% discount on any service',
+          points_required: 300,
+          category: 'discount',
+          value: 20,
+          value_type: 'percentage',
+          is_available: true,
+          new: true
+        }
+      ])
+    } catch (error) {
+      console.error('Error loading missions data:', error)
+    }
+  }
 
   // Initial load effect
   useEffect(() => {
@@ -116,6 +189,9 @@ export default function CustomerHomePage() {
 
     loadCustomerData()
 
+    // Load missions and rewards data
+    loadMissionsData()
+
     // Set up background refresh - much less frequent
     const refreshInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
@@ -159,72 +235,128 @@ export default function CustomerHomePage() {
     return () => clearInterval(interval)
   }, [])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Memuat data...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!customer) return null
-
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden sticky top-0 z-10">
+      {/* Header - Always render immediately with sticky class */}
+      <div className="sticky-header text-white bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)]">
         <div className="absolute top-0 right-[-50px] w-[120px] h-[120px] bg-white/10 rounded-full transform translate-x-5 -translate-y-5"></div>
-        
+
         <div className="max-w-md mx-auto px-5 py-6 relative z-10">
-          {/* User Info */}
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/30 backdrop-blur-lg">
-                <img
-                  src="https://images.pexels.com/photos/4921066/pexels-photo-4921066.jpeg"
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+          {loading || !customer ? (
+            // Skeleton state during loading
+            <div className="animate-pulse">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 border-2 border-white/30"></div>
+                  <div>
+                    <div className="h-6 bg-white/20 rounded w-32 mb-2"></div>
+                    <div className="h-4 bg-white/20 rounded w-20"></div>
+                  </div>
+                </div>
+                <div className="w-20 h-12 bg-white/20 rounded"></div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-1">{customer.name}</h3>
-                <div className="bg-white/20 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-lg">
-                  {customer.membership_level} Member
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="h-8 bg-white/20 rounded w-24 mb-2"></div>
+                  <div className="h-4 bg-white/20 rounded w-12"></div>
+                </div>
+                <div className="h-10 bg-white/20 rounded-full w-24"></div>
+              </div>
+              <div className="mt-4 bg-white/10 rounded-xl p-3 border border-white/20">
+                <div className="h-4 bg-white/20 rounded w-32 mb-2"></div>
+                <div className="h-2 bg-white/20 rounded-full w-full"></div>
+              </div>
+            </div>
+          ) : (
+            // Full header content when data is loaded
+            <>
+              {/* User Info */}
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/30 backdrop-blur-lg">
+                    <img
+                      src="https://images.pexels.com/photos/4921066/pexels-photo-4921066.jpeg"
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1">{customer.name}</h3>
+                    <div className="bg-white/20 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-lg">
+                      {customer.membership_level} Member
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center">
+                  <img
+                    src="/images/louva-putih.png"
+                    alt="Louva Logo"
+                    width={82}
+                    height={54}
+                    className="object-contain"
+                  />
                 </div>
               </div>
-            </div>
-            <div className="flex items-center justify-center">
-              <img 
-                src="/images/louva-putih.png" 
-                alt="Louva Logo" 
-                width={82} 
-                height={54}
-                className="object-contain"
-              />
-            </div>
-          </div>
 
-          {/* Points Section */}
-          <div className="flex justify-between items-center">
-            <div>
-              <span className="text-2xl font-bold block mb-1">{customer.total_points.toLocaleString('id-ID')}</span>
-              <span className="text-xs opacity-90 font-medium">points</span>
-            </div>
-            <Link href="/customer/services">
-              <button className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white px-4 py-2 rounded-full font-semibold text-xs shadow-lg">
-                Services
-              </button>
-            </Link>
-          </div>
+              {/* Points Section */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="text-2xl font-bold block mb-1">{customer.total_points.toLocaleString('id-ID')}</span>
+                  <span className="text-xs opacity-90 font-medium">points</span>
+                </div>
+                <Link href="/customer/services">
+                  <button className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white px-4 py-2 rounded-full font-semibold text-xs shadow-lg">
+                    Services
+                  </button>
+                </Link>
+              </div>
+
+              {/* Membership Progress Bar */}
+              <div className="mt-4 bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">{customer.membership_level} Member</span>
+                  <span className="text-xs opacity-90">
+                    {customer.membership_level === 'Bronze' ? `${Math.max(0, 500 - customer.total_points)} pts to Silver` :
+                     customer.membership_level === 'Silver' ? `${Math.max(0, 1000 - customer.total_points)} pts to Gold` :
+                     'Gold Status'}
+                  </span>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-white/80 to-white/60 transition-all duration-700"
+                    style={{
+                      width: `${
+                        customer.membership_level === 'Bronze'
+                          ? Math.min((customer.total_points / 500) * 100, 100)
+                          : customer.membership_level === 'Silver'
+                          ? Math.min(((customer.total_points - 500) / 500) * 100, 100)
+                          : 100
+                      }%`
+                    }}
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       <div className="max-w-md mx-auto px-5 py-6 space-y-6">
-        {/* Rotating Promo Banners */}
-        <div className="relative">
+        {loading ? (
+          // Loading state for content only
+          <div className="space-y-6">
+            <div className="animate-pulse">
+              <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl h-40"></div>
+            </div>
+            <div className="animate-pulse space-y-3">
+              <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl h-24"></div>
+              <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl h-24"></div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Rotating Promo Banners */}
+            <div className="relative">
           <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl overflow-hidden relative">
             <div 
               className="h-40 bg-cover bg-center relative transition-all duration-700"
@@ -263,63 +395,114 @@ export default function CustomerHomePage() {
           </div>
         </div>
 
-        {/* Missions Section - Changed from Badges & Mission */}
-        <div className="mt-8">
-          <Link href="/customer/missions">
-            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 cursor-pointer hover:bg-[var(--surface-lighter)] transition-all">
-              <div className="flex items-center gap-3">
-                <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
-                <div>
-                  <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Missions & Challenges</h3>
-                  <p className="text-sm text-[var(--text-secondary)]">Complete missions for bonus points</p>
+        {/* Active Missions Section */}
+        {activeMissions.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                <span className="material-icons text-[var(--accent)]">flag</span>
+                Active Missions
+              </h2>
+              <Link href="/customer/missions" className="text-sm text-[var(--accent)] hover:underline">
+                View All
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {activeMissions.slice(0, 2).map((mission) => (
+                <MissionCard
+                  key={mission.id}
+                  mission={mission}
+                  onClick={() => window.location.href = '/customer/missions'}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Missions Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+              <span className="material-icons text-purple-400">emoji_events</span>
+              Missions
+            </h2>
+            <Link href="/customer/missions" className="text-sm text-purple-400 hover:underline">
+              View all →
+            </Link>
+          </div>
+
+          <Card
+            className="relative p-4 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-blue-500/20 border-purple-500/30"
+            onClick={() => window.location.href = '/customer/missions'}
+          >
+            {/* Notification Badge - Edge Kanan Atas Card */}
+            <div className="absolute top-0 right-0 z-10 transform translate-x-1/2 -translate-y-1/2">
+              <div className="relative">
+                <span className="material-icons text-red-500 text-lg animate-pulse drop-shadow-lg">notifications</span>
+                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  2
                 </div>
               </div>
             </div>
-          </Link>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-xl flex items-center justify-center">
+                  <span className="material-icons text-purple-400 text-xl">emoji_events</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-[var(--text-primary)]">Weekend Warriors</h3>
+                  </div>
+                  <p className="text-sm text-[var(--text-secondary)] line-clamp-1 mb-2">
+                    Complete 3 services & win 150 points before Monday!
+                  </p>
+                  <div className="text-sm font-medium text-purple-400">
+                    🏆 2 missions active
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-0.5 mb-1">
+                  <span className="material-icons text-purple-400 text-xs">stars</span>
+                  <span className="font-bold text-[var(--text-primary)] text-sm">
+                    350
+                  </span>
+                </div>
+                <div className="text-xs text-[var(--text-muted)]">
+                  Points
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
 
-        {/* Membership Progress */}
-        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <i className="material-icons text-2xl text-[var(--primary)]">stars</i>
-            <div>
-              <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Membership Progress</h3>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {customer.membership_level === 'Bronze' && `${Math.max(0, 500 - customer.total_points)} poin lagi menuju Silver`}
-                {customer.membership_level === 'Silver' && `${Math.max(0, 1000 - customer.total_points)} poin lagi menuju Gold`}
-                {customer.membership_level === 'Gold' && 'Selamat! Anda sudah mencapai level tertinggi'}
-              </p>
+        {/* Featured Rewards Section */}
+        {featuredRewards.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                <span className="material-icons text-yellow-400">card_giftcard</span>
+                Featured Rewards
+              </h2>
+              <Link href="/customer/rewards" className="text-sm text-[var(--accent)] hover:underline">
+                View all →
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {featuredRewards.map((reward) => (
+                <RewardCard
+                  key={reward.id}
+                  reward={reward}
+                  userPoints={customer.total_points}
+                  onClick={() => window.location.href = '/customer/rewards'}
+                />
+              ))}
             </div>
           </div>
-          
-          {customer.membership_level !== 'Gold' && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text-secondary)]">Current: {customer.membership_level}</span>
-                <span className="text-[var(--text-primary)] font-medium">
-                  {customer.membership_level === 'Bronze' ? 'Next: Silver' : 'Next: Gold'}
-                </span>
-              </div>
-              <div className="w-full bg-[var(--surface)] rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] h-2 rounded-full transition-all duration-700"
-                  style={{
-                    width: `${Math.min(
-                      customer.membership_level === 'Bronze'
-                        ? Math.min((customer.total_points / 500) * 100, 100)
-                        : Math.min(((customer.total_points - 500) / 500) * 100, 100),
-                      100
-                    )}%`
-                  }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-[var(--text-secondary)]">
-                <span>{customer.membership_level === 'Bronze' ? '0' : '500'}</span>
-                <span>{customer.membership_level === 'Bronze' ? '500' : '1000'}</span>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
+          </>
+        )}
       </div>
     </div>
   )

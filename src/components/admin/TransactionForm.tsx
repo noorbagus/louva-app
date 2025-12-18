@@ -20,12 +20,12 @@ export function TransactionForm({ customer }: TransactionFormProps) {
   const [activeMissions, setActiveMissions] = useState<any[]>([])
 
   useEffect(() => {
-    // Check for active missions from QR scan
-    const missionData = localStorage.getItem('scanned_missions')
+    // Check for active missions from QR scan (using session storage)
+    const missionData = sessionStorage.getItem('scanned_missions')
     if (missionData) {
       const missions = JSON.parse(missionData)
       setActiveMissions(missions)
-      localStorage.removeItem('scanned_missions') // Clear after use
+      sessionStorage.removeItem('scanned_missions') // Clear after use
     }
   }, [])
 
@@ -139,6 +139,7 @@ export function TransactionForm({ customer }: TransactionFormProps) {
       <ServiceSelector
         selectedServices={selectedServices}
         onServiceToggle={handleServiceToggle}
+        activeMissions={activeMissions}
       />
 
       {/* Payment Method */}

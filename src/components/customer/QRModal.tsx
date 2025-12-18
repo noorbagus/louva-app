@@ -103,19 +103,19 @@ export function QRModal({ isOpen, onClose, customer }: QRModalProps) {
           </div>
         </div>
 
-        {/* Active Mission Alert */}
+        {/* FIXED: Active Mission Alert with blue theme */}
         {activeMissions.length > 0 && (
-          <div className="w-full bg-green-500/10 border border-green-500/30 rounded-lg p-3 mb-4">
+          <div className="w-full bg-blue-500/10 border border-blue-400/30 rounded-lg p-3 mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-icons text-green-400 text-sm">flag</span>
-              <span className="text-green-400 font-semibold text-sm">Active Mission</span>
+              <span className="material-icons text-blue-400 text-sm">flag</span>
+              <span className="text-blue-400 font-semibold text-sm">Active Mission</span>
             </div>
             {activeMissions.map((mission, index) => (
-              <div key={index} className="text-xs text-green-300">
+              <div key={index} className="text-xs text-black font-medium">
                 "{mission.title}" - +{mission.bonus_points} bonus points
               </div>
             ))}
-            <div className="text-xs text-green-400 mt-1 font-medium">
+            <div className="text-xs text-blue-200 mt-1 font-medium">
               Complete your service to earn bonus points!
             </div>
           </div>

@@ -80,23 +80,10 @@ export default function CustomerRewardsPage() {
     }, 300)
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Memuat reward...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!customer) return null
-
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white sticky top-0 z-10">
+      {/* Header - Always render immediately with sticky class */}
+      <div className="sticky-header text-white bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)]">
         <div className="max-w-md mx-auto px-5 py-6">
           <div className="flex items-center gap-4">
             <button onClick={() => window.history.back()} className="text-white">

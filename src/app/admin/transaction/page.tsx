@@ -4,90 +4,37 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Customer } from '@/lib/types'
 import { TransactionForm } from '@/components/admin/TransactionForm'
-import { supabase } from '@/lib/supabase-frontend'
 
-// Fixed customer for demo
-const CUSTOMER_ID = '550e8400-e29b-41d4-a716-446655440001'
+// Static customer data for testing
+const STATIC_CUSTOMER: Customer = {
+  id: '550e8400-e29b-41d4-a716-446655440001',
+  customer_id: '550e8400-e29b-41d4-a716-446655440001',
+  name: 'Sari Dewi',
+  phone: '081234567890',
+  email: 'sari.dewi@example.com',
+  full_name: 'Sari Dewi',
+  total_points: 632,
+  membership_level: 'Silver' as any,
+  total_visits: 26,
+  total_spent: 4920000,
+  qr_code: 'LOUVA_SD001_2024',
+  created_at: '2025-12-17T14:04:08.068454',
+  updated_at: '2025-12-18T10:18:55.683'
+}
 
 export default function TransactionPage() {
-  const [customer, setCustomer] = useState<Customer | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [customer] = useState<Customer>(STATIC_CUSTOMER)
+  const [activeMissions, setActiveMissions] = useState<any[]>([])
 
   useEffect(() => {
-    fetchCustomer()
-  }, [])
-
-  const fetchCustomer = async () => {
-    try {
-      // For demo, use the fixed customer
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', CUSTOMER_ID)
-        .single()
-
-      if (error) throw error
-
-      // Transform to Customer type
-      const transformedCustomer: Customer = {
-        id: data.id,
-        customer_id: data.id,
-        name: data.full_name,
-        phone: data.phone || '',
-        email: data.email,
-        full_name: data.full_name,
-        total_points: data.total_points,
-        membership_level: data.membership_level as any,
-        total_visits: data.total_visits,
-        total_spent: data.total_spent,
-        qr_code: data.qr_code,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      }
-
-      setCustomer(transformedCustomer)
-    } catch (error) {
-      console.error('Error fetching customer:', error)
-      setError('Failed to load customer data')
-    } finally {
-      setLoading(false)
+    // Check for missions from QR scan
+    const missionData = sessionStorage.getItem('scanned_missions')
+    if (missionData) {
+      const missions = JSON.parse(missionData)
+      setActiveMissions(missions)
+      sessionStorage.removeItem('scanned_missions')
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
-      </div>
-    )
-  }
-
-  if (error || !customer) {
-    return (
-      <div className="px-5 py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin/scanner">
-            <button className="p-2 hover:bg-[var(--surface-light)] rounded-xl transition-colors">
-              <span className="material-icons text-[var(--text-primary)]">arrow_back</span>
-            </button>
-          </Link>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">New Transaction</h1>
-        </div>
-
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
-          <span className="material-icons text-red-500 text-4xl mb-3 block">error</span>
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Customer</h2>
-          <p className="text-red-600 mb-4">{error || 'Customer data not found'}</p>
-          <Link href="/admin/scanner">
-            <button className="px-6 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors">
-              Back to Scanner
-            </button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  }, [])
 
   return (
     <div className="px-5 py-6">
@@ -100,6 +47,23 @@ export default function TransactionPage() {
         </Link>
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">New Transaction</h1>
       </div>
+
+      {/* Mission Info */}
+      {activeMissions.length > 0 && (
+        <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-2xl">
+          <h3 className="text-green-400 font-semibold mb-2">
+            🎯 Active Missions Detected
+          </h3>
+          {activeMissions.map((mission, index) => (
+            <div key={index} className="text-sm text-green-300">
+              "{mission.title}" - {mission.service_name} (+{mission.bonus_points} bonus pts)
+            </div>
+          ))}
+          <p className="text-xs text-green-200 mt-2">
+            Relevant services will be auto-selected below
+          </p>
+        </div>
+      )}
 
       {/* Transaction Form */}
       <TransactionForm customer={customer} />
