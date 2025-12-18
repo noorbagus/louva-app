@@ -37,10 +37,11 @@ export function ServiceSelector({ selectedServices, onServiceToggle }: ServiceSe
         point_multiplier: s.points_multiplier,
         description: s.description || '',
         is_active: s.is_active,
-        created_at: s.created_at
+        created_at: s.created_at,
+        updated_at: s.updated_at || new Date().toISOString()
       }))
 
-      setServices(transformedServices)
+      setServices(transformedServices as any)
     } catch (error) {
       console.error('Error fetching services:', error)
     } finally {
@@ -50,7 +51,7 @@ export function ServiceSelector({ selectedServices, onServiceToggle }: ServiceSe
 
   const handleServiceClick = (service: Service) => {
     const selectedService: SelectedService = {
-      id: service.id,
+      id: (service as any).id,
       name: service.name,
       price: service.price,
       points: Math.floor(service.price / 1000 * service.point_multiplier)
@@ -99,12 +100,12 @@ export function ServiceSelector({ selectedServices, onServiceToggle }: ServiceSe
 
           <div className="space-y-2">
             {categoryServices.map((service) => {
-              const isSelected = isServiceSelected(service.id)
+              const isSelected = isServiceSelected((service as any).id)
               const points = Math.floor(service.price / 1000 * service.point_multiplier)
 
               return (
                 <div
-                  key={service.id}
+                  key={(service as any).id}
                   onClick={() => handleServiceClick(service)}
                   className={`bg-[var(--surface-light)] border rounded-2xl p-4 cursor-pointer transition-all ${
                     isSelected
@@ -116,10 +117,7 @@ export function ServiceSelector({ selectedServices, onServiceToggle }: ServiceSe
                     <div>
                       <h4 className="font-medium text-[var(--text-primary)]">{service.name}</h4>
                       <p className="text-sm text-[var(--text-muted)]">
-                        {service.min_price === service.max_price
-                          ? `Rp ${service.price.toLocaleString()}`
-                          : `Rp ${service.min_price?.toLocaleString()} - ${service.max_price?.toLocaleString()}`
-                        }
+                        {`Rp ${service.price.toLocaleString()}`}
                       </p>
                     </div>
                     <div className="text-right">

@@ -1,0 +1,49 @@
+# Supabase Configuration
+# Please replace these with your actual Supabase credentials from:
+# https://supabase.com/dashboard/project/[your-project-id]/settings/api
+NEXT_PUBLIC_SUPABASE_URL=https://znsmbtnlfqdumnrmvijh.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTk3MzQwNiwiZXhwIjoyMDgxNTQ5NDA2fQ.NAAyUacn3xdKsf15vOETFXuCx6P86LxqdMvQwy__QW4
+
+# App Configuration
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_NAME=LOUVA
+NEXT_PUBLIC_APP_VERSION=1.0.0
+
+# Authentication (for prototype - fixed accounts)
+JWT_SECRET=your_jwt_secret_here_for_development
+NEXTAUTH_SECRET=your_nextauth_secret_here_for_development
+NEXTAUTH_URL=http://localhost:3000
+
+# Fixed Accounts (for prototype)
+FIXED_CUSTOMER_ID=550e8400-e29b-41d4-a716-446655440001
+FIXED_CUSTOMER_NAME=Sari Dewi
+FIXED_CUSTOMER_PHONE=+62812345678
+FIXED_CUSTOMER_EMAIL=sari.dewi@example.com
+
+FIXED_ADMIN_ID=550e8400-e29b-41d4-a716-446655440002
+FIXED_ADMIN_NAME=Maya Sari
+FIXED_ADMIN_PHONE=+62898765432
+FIXED_ADMIN_EMAIL=maya.sari@louva.com
+
+# Salon Configuration
+SALON_NAME=LOUVA Salon
+SALON_ADDRESS=Jakarta, Indonesia
+SALON_PHONE=+6221123456
+SALON_EMAIL=info@louva.com
+
+# Points Configuration
+DEFAULT_POINT_RATE=1000 # 1 point per 1000 IDR
+POINT_EXPIRY_MONTHS=12
+
+# Third-party Services (Optional)
+# PUSHER_APP_ID=your_pusher_app_id
+# PUSHER_KEY=your_pusher_key
+# PUSHER_SECRET=your_pusher_secret
+# PUSHER_CLUSTER=ap1
+
+# Google Analytics (Optional)
+# NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+
+# Development Settings
+NODE_ENV=development

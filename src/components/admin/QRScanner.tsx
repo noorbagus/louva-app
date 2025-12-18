@@ -72,7 +72,7 @@ export function QRScanner({ onScanSuccess }: { onScanSuccess: (customerData: any
       }
 
       // Start QR detection using the video stream
-      codeReader.current.decodeFromVideoDevice(undefined, videoRef.current!, (result, err) => {
+      codeReader.current.decodeFromVideoDevice(null, videoRef.current!, (result, err) => {
         if (result && result.getText()) {
           handleScanResult(result.getText())
         }

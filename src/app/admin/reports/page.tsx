@@ -59,7 +59,7 @@ export default function ReportsPage() {
 
       // Group services by name for top services
       const serviceRevenue = transactionServices?.reduce((acc, ts) => {
-        const serviceName = ts.service?.name || 'Unknown'
+        const serviceName = (ts.service as any)?.name || 'Unknown'
         acc[serviceName] = (acc[serviceName] || 0) + ts.price
         return acc
       }, {} as Record<string, number>)
@@ -114,7 +114,7 @@ export default function ReportsPage() {
           <Button
             key={p}
             onClick={() => setPeriod(p)}
-            variant={period === p ? 'default' : 'outline'}
+            variant={period === p ? 'primary' : 'outline'}
             className={period === p ? '' : 'bg-[var(--surface-light)] text-[var(--text-muted)]'}
           >
             {p.charAt(0).toUpperCase() + p.slice(1)}

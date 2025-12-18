@@ -82,7 +82,7 @@ export default function CustomersPage() {
       ).length
 
       const activeCustomers = transformedCustomers.filter(c =>
-        c.total_visits > 0
+        (c.total_visits || 0) > 0
       ).length
 
       setStats({
@@ -299,7 +299,7 @@ export default function CustomersPage() {
               <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                 <span>{customer.total_visits || 0} visits</span>
                 <span>•</span>
-                <span>Last: {formatDate(customer.last_visit || customer.updated_at)}</span>
+                <span>Last: {formatDate(customer.last_visit || customer.updated_at || '')}</span>
                 <span>•</span>
                 <span>{customer.phone || 'No phone'}</span>
               </div>

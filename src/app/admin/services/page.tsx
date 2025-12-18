@@ -76,7 +76,7 @@ export default function ServicesPage() {
         const { error } = await supabase
           .from('services')
           .update(serviceData)
-          .eq('id', editingService.id)
+          .eq('id', (editingService as any).id)
 
         if (error) throw error
       } else {
@@ -193,7 +193,7 @@ export default function ServicesPage() {
 
             <Card className="bg-[var(--surface-light)] border-[var(--border)] divide-y divide-[var(--border)]">
               {categoryServices.map((service) => (
-                <div key={service.id} className="p-5 flex items-center justify-between">
+                <div key={(service as any).id} className="p-5 flex items-center justify-between">
                   <div className="flex-1">
                     <h3 className="font-semibold text-[var(--text-primary)]">{service.name}</h3>
                     <p className="text-sm text-[var(--text-muted)] mt-1">
@@ -214,7 +214,7 @@ export default function ServicesPage() {
                       <span className="material-icons">edit</span>
                     </button>
                     <button
-                      onClick={() => handleDelete(service.id)}
+                      onClick={() => handleDelete((service as any).id)}
                       className="p-2 text-[var(--error)] hover:bg-[var(--surface)] rounded-lg transition-colors"
                     >
                       <span className="material-icons">delete</span>

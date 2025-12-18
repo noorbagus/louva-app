@@ -60,7 +60,7 @@ export default function AdminDashboard() {
 
       // Group services by name and sum revenue
       const serviceRevenue = transactionServices?.reduce((acc, ts) => {
-        const serviceName = ts.service?.name || 'Unknown'
+        const serviceName = (ts.service as any)?.name || 'Unknown'
         acc[serviceName] = (acc[serviceName] || 0) + ts.price
         return acc
       }, {} as Record<string, number>)
