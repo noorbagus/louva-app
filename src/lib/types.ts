@@ -33,6 +33,7 @@ export interface Admin {
 }
 
 export interface Service {
+  id: string
   service_id: string
   name: string
   category: ServiceCategory

@@ -25,10 +25,10 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
 
       if (missionServiceIds.length > 0) {
         missionServiceIds.forEach(serviceId => {
-          const service = services.find(s => s.id === serviceId)
+          const service = services.find(s => s.service_id === serviceId)
           if (service && !isServiceSelected(serviceId)) {
             const selectedService: SelectedService = {
-              id: service.id,
+              id: service.service_id,
               name: service.name,
               price: service.price,
               points: Math.floor(service.price / 1000 * service.point_multiplier)
@@ -52,8 +52,8 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
 
       // Transform to match Service type
       const transformedServices = data.map(s => ({
-        id: s.id,
-        service_id: s.id,
+        id: s.service_id,
+        service_id: s.service_id,
         name: s.name,
         category: s.category as any,
         price: s.min_price,
@@ -74,7 +74,7 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
 
   const handleServiceClick = (service: Service) => {
     const selectedService: SelectedService = {
-      id: (service as any).id,
+      id: service.id,
       name: service.name,
       price: service.price,
       points: Math.floor(service.price / 1000 * service.point_multiplier)
@@ -123,9 +123,9 @@ export function ServiceSelector({ selectedServices, onServiceToggle, activeMissi
 
           <div className="space-y-2">
             {categoryServices.map((service) => {
-              const isSelected = isServiceSelected((service as any).id)
+              const isSelected = isServiceSelected(service.id)
               const points = Math.floor(service.price / 1000 * service.point_multiplier)
-              const serviceId = (service as any).id
+              const serviceId = service.id
 
               // Check if this service has an active mission
               const missionForService = activeMissions.find(m => m.service_id === serviceId)

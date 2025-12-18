@@ -100,10 +100,10 @@ export default function CustomerRewardsPage() {
           <div className="text-center py-4">
             <p className="text-[var(--text-muted)] text-sm mb-1">Poin Tersedia</p>
             <p className="text-3xl font-bold text-[var(--primary)]">
-              {customer.total_points.toLocaleString('id-ID')}
+              {customer?.total_points?.toLocaleString('id-ID') || '0'}
             </p>
             <p className="text-[var(--text-muted)] text-xs mt-1">
-              {customer.membership_level} Member
+              {customer?.membership_level || 'Bronze'} Member
             </p>
           </div>
         </div>
