@@ -261,22 +261,6 @@ export default function CustomerHomePage() {
             </div>
           </div>
         </div>
-
-        {/* Badges Section */}
-        <div className="mt-8">
-          <Link href="/customer/rewards">
-            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 cursor-pointer hover:bg-[var(--surface-lighter)] transition-all">
-              <div className="flex items-center gap-3">
-                <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
-                <div>
-                  <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Badges & Mission</h3>
-                  <p className="text-sm text-[var(--text-secondary)]">Collect badges and unlock more rewards</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-
         {/* Membership Progress */}
         <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -319,6 +303,22 @@ export default function CustomerHomePage() {
             </div>
           )}
         </div>
+        {/* Badges Section */}
+        <div className="mt-8">
+          <Link href="/customer/rewards">
+            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 cursor-pointer hover:bg-[var(--surface-lighter)] transition-all">
+              <div className="flex items-center gap-3">
+                <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
+                <div>
+                  <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Badges & Mission</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">Collect badges and unlock more rewards</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+
       </div>
     </div>
   )
