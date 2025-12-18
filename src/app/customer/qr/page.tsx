@@ -97,7 +97,7 @@ export default function CustomerQRPage() {
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      {/* Header - Always render immediately with sticky class */}
+      {/* Header - Always render immediately with sticky class. */}
       <div className="sticky-header text-white bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)]">
         <div className="max-w-md mx-auto px-5 py-6">
           <div className="flex items-center gap-4">

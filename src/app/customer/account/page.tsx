@@ -84,106 +84,148 @@ export default function CustomerAccountPage() {
       </div>
 
       <div className="max-w-md mx-auto px-5 py-6 space-y-6">
-        {/* Profile Header */}
-        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 text-center">
-          <div className="w-12 h-12 rounded-xl mx-auto mb-4 overflow-hidden">
-            <img
-              src="https://images.pexels.com/photos/4921066/pexels-photo-4921066.jpeg"
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
+        {isLoading || !customer ? (
+          // Loading skeleton for account page content
+          <div className="space-y-6">
+            <div className="animate-pulse">
+              <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 text-center">
+                <div className="w-12 h-12 rounded-xl mx-auto mb-4 bg-white/20"></div>
+                <div className="h-6 bg-white/20 rounded w-32 mx-auto mb-2"></div>
+                <div className="h-4 bg-white/20 rounded w-48 mx-auto"></div>
+              </div>
+            </div>
+            <div className="animate-pulse">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
+                  <div className="h-6 bg-white/20 rounded w-8 mx-auto mb-2"></div>
+                  <div className="h-3 bg-white/20 rounded w-16 mx-auto"></div>
+                </div>
+                <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
+                  <div className="h-6 bg-white/20 rounded w-10 mx-auto mb-2"></div>
+                  <div className="h-3 bg-white/20 rounded w-20 mx-auto"></div>
+                </div>
+                <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
+                  <div className="h-6 bg-white/20 rounded w-12 mx-auto mb-2"></div>
+                  <div className="h-3 bg-white/20 rounded w-12 mx-auto"></div>
+                </div>
+              </div>
+            </div>
+            <div className="animate-pulse">
+              <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl overflow-hidden">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <div key={i} className="flex items-center p-4 border-b border-[var(--border)] last:border-b-0">
+                    <div className="w-6 h-6 bg-white/20 rounded mr-4"></div>
+                    <div className="flex-1 h-4 bg-white/20 rounded w-32"></div>
+                    <div className="h-4 bg-white/20 rounded w-4"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">{customer.name}</h3>
-          <p className="text-[var(--text-secondary)] text-sm">View and edit profile</p>
-        </div>
+        ) : (
+          <>
+            {/* Profile Header */}
+            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 text-center">
+              <div className="w-12 h-12 rounded-xl mx-auto mb-4 overflow-hidden">
+                <img
+                  src="https://images.pexels.com/photos/4921066/pexels-photo-4921066.jpeg"
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">{customer.name}</h3>
+              <p className="text-[var(--text-secondary)] text-sm">View and edit profile</p>
+            </div>
 
-        {/* Statistics */}
-        <div>
-          <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4 pl-1">Your Statistics</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
-              <div className="text-lg font-bold text-[var(--primary)]">{customer.total_visits || 0}</div>
-              <div className="text-xs text-[var(--text-muted)] mt-1">Total Visits</div>
+            {/* Statistics */}
+            <div>
+              <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4 pl-1">Your Statistics</h2>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
+                  <div className="text-lg font-bold text-[var(--primary)]">{customer.total_visits || 0}</div>
+                  <div className="text-xs text-[var(--text-muted)] mt-1">Total Visits</div>
+                </div>
+                <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
+                <div className="text-lg font-bold text-[var(--primary)]">
+                  {((customer.total_spent || 0) / 1000).toLocaleString('id-ID')} K
+                </div>
+                  <div className="text-xs text-[var(--text-muted)] mt-1">Total Spent (Rp)</div>
+                </div>
+                <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
+                  <div className="text-lg font-bold text-[var(--primary)]">{customer.total_points?.toLocaleString('id-ID') || 0}</div>
+                  <div className="text-xs text-[var(--text-muted)] mt-1">Points</div>
+                </div>
+              </div>
             </div>
-            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
-            <div className="text-lg font-bold text-[var(--primary)]">
-              {((customer.total_spent || 0) / 1000).toLocaleString('id-ID')} K
-            </div>
-              <div className="text-xs text-[var(--text-muted)] mt-1">Total Spent (Rp)</div>
-            </div>
-            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
-              <div className="text-lg font-bold text-[var(--primary)]">{customer.total_points?.toLocaleString('id-ID') || 0}</div>
-              <div className="text-xs text-[var(--text-muted)] mt-1">Points</div>
-            </div>
-          </div>
-        </div>
 
-        {/* Menu List */}
-        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl overflow-hidden">
-          <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-            <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-              <i className="material-icons text-lg">receipt_long</i>
+            {/* Menu List */}
+            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl overflow-hidden">
+              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
+                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
+                  <i className="material-icons text-lg">receipt_long</i>
+                </div>
+                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Transaction History</div>
+                <div className="text-[var(--text-muted)]">›</div>
+              </div>
+
+              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
+                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
+                  <i className="material-icons text-lg">redeem</i>
+                </div>
+                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">My Redemptions</div>
+                <div className="text-[var(--text-muted)]">›</div>
+              </div>
+
+              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
+                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
+                  <i className="material-icons text-lg">emoji_events</i>
+                </div>
+                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Achievements</div>
+                <div className="text-[var(--text-muted)]">›</div>
+              </div>
+
+              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
+                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
+                  <i className="material-icons text-lg">location_on</i>
+                </div>
+                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Salon Locations</div>
+                <div className="text-[var(--text-muted)]">›</div>
+              </div>
+
+              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
+                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
+                  <i className="material-icons text-lg">schedule</i>
+                </div>
+                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Points Expiry</div>
+                <div className="text-[var(--text-muted)]">›</div>
+              </div>
+
+              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
+                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
+                  <i className="material-icons text-lg">notifications</i>
+                </div>
+                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Notifications</div>
+                <div className="text-[var(--text-muted)]">›</div>
+              </div>
+
+              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
+                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
+                  <i className="material-icons text-lg">help</i>
+                </div>
+                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Help & Support</div>
+                <div className="text-[var(--text-muted)]">›</div>
+              </div>
+
+              <div className="flex items-center p-4 cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
+                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
+                  <i className="material-icons text-lg">settings</i>
+                </div>
+                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Settings</div>
+                <div className="text-[var(--text-muted)]">›</div>
+              </div>
             </div>
-            <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Transaction History</div>
-            <div className="text-[var(--text-muted)]">›</div>
-          </div>
-          
-          <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-            <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-              <i className="material-icons text-lg">redeem</i>
-            </div>
-            <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">My Redemptions</div>
-            <div className="text-[var(--text-muted)]">›</div>
-          </div>
-          
-          <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-            <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-              <i className="material-icons text-lg">emoji_events</i>
-            </div>
-            <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Achievements</div>
-            <div className="text-[var(--text-muted)]">›</div>
-          </div>
-          
-          <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-            <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-              <i className="material-icons text-lg">location_on</i>
-            </div>
-            <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Salon Locations</div>
-            <div className="text-[var(--text-muted)]">›</div>
-          </div>
-          
-          <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-            <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-              <i className="material-icons text-lg">schedule</i>
-            </div>
-            <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Points Expiry</div>
-            <div className="text-[var(--text-muted)]">›</div>
-          </div>
-          
-          <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-            <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-              <i className="material-icons text-lg">notifications</i>
-            </div>
-            <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Notifications</div>
-            <div className="text-[var(--text-muted)]">›</div>
-          </div>
-          
-          <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-            <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-              <i className="material-icons text-lg">help</i>
-            </div>
-            <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Help & Support</div>
-            <div className="text-[var(--text-muted)]">›</div>
-          </div>
-          
-          <div className="flex items-center p-4 cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-            <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-              <i className="material-icons text-lg">settings</i>
-            </div>
-            <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Settings</div>
-            <div className="text-[var(--text-muted)]">›</div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   )
