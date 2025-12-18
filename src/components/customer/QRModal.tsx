@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import { Modal } from '@/components/shared/Modal'
 import { Button } from '@/components/shared/Button'
+import { Badge } from '@/components/shared/Badge'
 import { Customer } from '@/lib/types'
 import { generateQRData, isQRValid, formatDateTime } from '@/lib/utils'
 import { Download, RefreshCw } from 'lucide-react'
@@ -19,10 +20,12 @@ export function QRModal({ isOpen, onClose, customer }: QRModalProps) {
   const [currentQRData, setCurrentQRData] = useState<string>('')
   const [qrTimestamp, setQrTimestamp] = useState<Date>(new Date())
   const [timeRemaining, setTimeRemaining] = useState<number>(300) // 5 minutes in seconds
+  const [activeMissions, setActiveMissions] = useState<any[]>([])
 
   useEffect(() => {
     if (isOpen) {
       generateQR()
+      fetchActiveMissions()
       // Start countdown timer
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
@@ -37,6 +40,17 @@ export function QRModal({ isOpen, onClose, customer }: QRModalProps) {
       return () => clearInterval(timer)
     }
   }, [isOpen, customer])
+
+  const fetchActiveMissions = async () => {
+    try {
+      const response = await fetch(`/api/missions?user_id=${customer.id}`)
+      const data = await response.json()
+      const active = data.missions?.filter((m: any) => m.user_status === 'active') || []
+      setActiveMissions(active)
+    } catch (error) {
+      console.error('Error fetching active missions:', error)
+    }
+  }
 
   const generateQR = async () => {
     if (!canvasRef.current) return
@@ -88,6 +102,24 @@ export function QRModal({ isOpen, onClose, customer }: QRModalProps) {
             <span>Auto-refresh in {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
           </div>
         </div>
+
+        {/* Active Mission Alert */}
+        {activeMissions.length > 0 && (
+          <div className="w-full bg-green-500/10 border border-green-500/30 rounded-lg p-3 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-icons text-green-400 text-sm">flag</span>
+              <span className="text-green-400 font-semibold text-sm">Active Mission</span>
+            </div>
+            {activeMissions.map((mission, index) => (
+              <div key={index} className="text-xs text-green-300">
+                "{mission.title}" - +{mission.bonus_points} bonus points
+              </div>
+            ))}
+            <div className="text-xs text-green-400 mt-1 font-medium">
+              Complete your service to earn bonus points!
+            </div>
+          </div>
+        )}
 
         <div className="qr-container p-6 bg-white rounded-lg">
           <canvas

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Customer, SelectedService, PaymentMethodConfig } from '@/lib/types'
+import { useState, useEffect } from 'react'
+import { Customer, SelectedService } from '@/lib/types'
 import { CustomerInfo } from './CustomerInfo'
 import { ServiceSelector } from './ServiceSelector'
 import { PaymentSelector } from './PaymentSelector'
@@ -17,6 +17,17 @@ export function TransactionForm({ customer }: TransactionFormProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null)
   const [notes, setNotes] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [activeMissions, setActiveMissions] = useState<any[]>([])
+
+  useEffect(() => {
+    // Check for active missions from QR scan
+    const missionData = localStorage.getItem('scanned_missions')
+    if (missionData) {
+      const missions = JSON.parse(missionData)
+      setActiveMissions(missions)
+      localStorage.removeItem('scanned_missions') // Clear after use
+    }
+  }, [])
 
   const handleServiceToggle = (service: SelectedService) => {
     setSelectedServices(prev => {
@@ -37,6 +48,18 @@ export function TransactionForm({ customer }: TransactionFormProps) {
     return selectedServices.reduce((sum, service) => sum + service.points, 0)
   }
 
+  const calculateMissionBonus = () => {
+    if (!activeMissions.length) return 0
+    
+    return activeMissions.reduce((total, mission) => {
+      // Check if service matches mission requirement
+      if (!mission.service_id || selectedServices.some(s => s.id === mission.service_id)) {
+        return total + mission.bonus_points
+      }
+      return total
+    }, 0)
+  }
+
   const handleProcessTransaction = async () => {
     if (selectedServices.length === 0) {
       alert('Please select at least one service')
@@ -51,7 +74,7 @@ export function TransactionForm({ customer }: TransactionFormProps) {
     setProcessing(true)
 
     try {
-      // Create transaction
+      // Create transaction with active missions
       const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,6 +83,7 @@ export function TransactionForm({ customer }: TransactionFormProps) {
           service_ids: selectedServices.map(s => s.id),
           payment_method_id: selectedPaymentMethod,
           service_prices: selectedServices.map(s => s.price),
+          active_missions: activeMissions,
           notes: notes || ''
         })
       })
@@ -70,8 +94,13 @@ export function TransactionForm({ customer }: TransactionFormProps) {
         // Clear customer cache after successful transaction
         clearCustomerCache()
         
-        // Show success message and redirect
-        alert('Transaction completed successfully! Customer earned ' + data.customer.total_points.toLocaleString() + ' points.')
+        // Show success message with mission info
+        let message = `Transaction completed successfully! Customer earned ${data.customer.total_points.toLocaleString()} total points.`
+        if (data.mission_bonus_points > 0) {
+          message += ` Bonus from missions: +${data.mission_bonus_points} points!`
+        }
+        
+        alert(message)
         window.location.href = '/admin'
       } else {
         alert('Failed to process transaction: ' + (data.error || 'Unknown error'))
@@ -86,11 +115,25 @@ export function TransactionForm({ customer }: TransactionFormProps) {
 
   const totalAmount = calculateTotal()
   const totalPoints = calculatePoints()
+  const missionBonus = calculateMissionBonus()
+  const finalPoints = totalPoints + missionBonus
 
   return (
     <div className="space-y-6">
       {/* Customer Info */}
       <CustomerInfo customer={customer} />
+
+      {/* Active Missions Display */}
+      {activeMissions.length > 0 && (
+        <Card className="bg-green-500/10 border-green-500/30 p-4">
+          <h3 className="text-green-400 font-semibold mb-2">Active Missions</h3>
+          {activeMissions.map((mission, index) => (
+            <div key={index} className="text-sm text-green-300">
+              "{mission.title}" - +{mission.bonus_points} bonus points
+            </div>
+          ))}
+        </Card>
+      )}
 
       {/* Service Selection */}
       <ServiceSelector
@@ -126,13 +169,23 @@ export function TransactionForm({ customer }: TransactionFormProps) {
               <span className="font-medium">Rp {totalAmount.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-[var(--success)]">
-              <span>Points to earn:</span>
-              <span className="font-semibold">+{totalPoints} points</span>
+              <span>Service points:</span>
+              <span className="font-semibold">+{totalPoints} pts</span>
             </div>
+            {missionBonus > 0 && (
+              <div className="flex justify-between text-green-400">
+                <span>Mission bonus:</span>
+                <span className="font-semibold">+{missionBonus} pts</span>
+              </div>
+            )}
             <div className="h-px bg-[var(--border)] my-3"></div>
             <div className="flex justify-between text-lg font-bold text-[var(--text-primary)]">
               <span>Total:</span>
               <span>Rp {totalAmount.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold text-[var(--success)]">
+              <span>Total Points:</span>
+              <span>+{finalPoints} pts</span>
             </div>
           </div>
         </Card>
@@ -154,7 +207,7 @@ export function TransactionForm({ customer }: TransactionFormProps) {
             Processing...
           </span>
         ) : (
-          'Process Transaction'
+          `Process Transaction${missionBonus > 0 ? ` (+${missionBonus} bonus pts)` : ''}`
         )}
       </button>
     </div>

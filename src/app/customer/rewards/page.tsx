@@ -69,13 +69,15 @@ export default function CustomerRewardsPage() {
     }
   }
 
-  // Mission activation handler - auto redirect to QR card
+  // Mission activation handler - auto redirect to QR card with delay
   const handleActivateMission = () => {
     // Store activation state in localStorage to trigger auto QR open
     localStorage.setItem('auto_open_qr', 'true')
     
-    // Navigate to QR card page
-    router.push('/customer/qr')
+    // Add 300ms delay for smoother transition
+    setTimeout(() => {
+      router.push('/customer/qr')
+    }, 300)
   }
 
   if (isLoading) {

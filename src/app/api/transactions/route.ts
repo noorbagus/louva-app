@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       payment_method_id,
       notes,
       service_prices,
-      mission_id // New field for mission completion
+      active_missions // New field for mission completion
     } = body
 
     if (!user_id || !service_ids || !payment_method_id || !service_prices) {
@@ -92,33 +92,26 @@ export async function POST(request: NextRequest) {
 
     // Check for mission bonus
     let missionBonusPoints = 0
-    let missionData = null
+    let completedMissions = []
 
-    if (mission_id) {
-      const { data: activeMission } = await supabase
-        .from('user_missions')
-        .select(`
-          *,
-          mission:missions (
-            id,
-            title,
-            bonus_points,
-            service_id
-          )
-        `)
-        .eq('user_id', user_id)
-        .eq('mission_id', mission_id)
-        .eq('status', 'active')
-        .single()
-
-      if (activeMission && activeMission.mission) {
-        // Check if this service matches the mission requirement
-        const missionServiceId = activeMission.mission.service_id
+    if (active_missions && active_missions.length > 0) {
+      for (const mission of active_missions) {
+        // Check if service matches mission requirement (if any)
+        const missionServiceId = mission.service_id
         const serviceMatches = !missionServiceId || service_ids.includes(missionServiceId)
 
         if (serviceMatches) {
-          missionBonusPoints = activeMission.mission.bonus_points
-          missionData = activeMission.mission
+          missionBonusPoints += mission.bonus_points
+          completedMissions.push(mission)
+
+          // Complete the mission
+          await supabaseAdmin
+            .from('user_missions')
+            .update({
+              status: 'completed',
+              completed_at: new Date().toISOString()
+            })
+            .eq('id', mission.user_mission_id)
         }
       }
     }
@@ -134,7 +127,6 @@ export async function POST(request: NextRequest) {
         payment_method_id,
         total_amount: totalAmount,
         points_earned: finalPointsEarned,
-        mission_id: mission_id || null,
         mission_bonus_points: missionBonusPoints,
         notes: notes || '',
         status: 'completed'
@@ -152,7 +144,7 @@ export async function POST(request: NextRequest) {
 
     // Insert transaction services
     for (const ts of transactionServices) {
-      const { error: tsError } = await supabaseAdmin
+      await supabaseAdmin
         .from('transaction_services')
         .insert({
           transaction_id: transaction.id,
@@ -160,33 +152,13 @@ export async function POST(request: NextRequest) {
           price: ts.price,
           points_earned: ts.points_earned
         })
-
-      if (tsError) {
-        console.error('Error inserting transaction service:', tsError)
-      }
-    }
-
-    // Complete mission if applicable
-    if (mission_id && missionData) {
-      const { error: missionCompleteError } = await supabaseAdmin
-        .from('user_missions')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .eq('user_id', user_id)
-        .eq('mission_id', mission_id)
-
-      if (missionCompleteError) {
-        console.error('Error completing mission:', missionCompleteError)
-      }
     }
 
     // Update customer points and membership
     const newPointsBalance = customer.total_points + finalPointsEarned
     const newMembershipLevel = newPointsBalance >= 1000 ? 'Gold' : newPointsBalance >= 500 ? 'Silver' : 'Bronze'
 
-    const { error: updateError } = await supabaseAdmin
+    await supabaseAdmin
       .from('users')
       .update({
         total_points: newPointsBalance,
@@ -197,17 +169,13 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', user_id)
 
-    if (updateError) {
-      console.error('Error updating customer points:', updateError)
-    }
-
     // Add to points history
     let description = 'Transaction: ' + services.map(s => s.name).join(', ')
-    if (missionData) {
-      description += ` + Mission: ${missionData.title}`
+    if (completedMissions.length > 0) {
+      description += ` + Missions: ${completedMissions.map(m => m.title).join(', ')}`
     }
 
-    const { error: historyError } = await supabaseAdmin
+    await supabaseAdmin
       .from('points_history')
       .insert({
         user_id,
@@ -218,10 +186,6 @@ export async function POST(request: NextRequest) {
         description
       })
 
-    if (historyError) {
-      console.error('Error creating points history:', historyError)
-    }
-
     return NextResponse.json({
       transaction,
       customer: {
@@ -229,12 +193,10 @@ export async function POST(request: NextRequest) {
         total_points: newPointsBalance,
         membership_level: newMembershipLevel
       },
-      mission_completed: missionData ? {
-        title: missionData.title,
-        bonus_points: missionBonusPoints
-      } : null,
-      message: missionData 
-        ? `Transaction completed! Mission "${missionData.title}" completed with +${missionBonusPoints} bonus points!`
+      missions_completed: completedMissions,
+      mission_bonus_points: missionBonusPoints,
+      message: completedMissions.length > 0 
+        ? `Transaction completed! Missions completed with +${missionBonusPoints} bonus points!`
         : 'Transaction completed successfully'
     })
   } catch (error) {
@@ -270,10 +232,6 @@ export async function GET(request: NextRequest) {
         payment_methods (
           name,
           type
-        ),
-        missions (
-          title,
-          bonus_points
         )
       `)
       .eq('status', 'completed')

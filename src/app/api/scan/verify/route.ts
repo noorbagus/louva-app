@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
         last_visit: customer.updated_at
       },
       active_missions: activeUserMissions.map(um => ({
+        user_mission_id: um.id,
         mission_id: um.mission.id,
         title: um.mission.title,
         description: um.mission.description,
