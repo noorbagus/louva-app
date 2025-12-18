@@ -51,8 +51,8 @@ export default function CustomerHomePage() {
           }
 
           const newPoints = profileData.total_points || (pointsData as any)?.current_points || 0
-          // Always calculate membership level from current points
-          const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
+          const newMembershipLevel = profileData.membership_level || (pointsData as any)?.membership_level ||
+            (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
 
           const mappedCustomer: Customer = {
             id: FIXED_CUSTOMER_ID,
@@ -61,7 +61,7 @@ export default function CustomerHomePage() {
             phone: profileData.phone || '081234567890',
             email: profileData.email || 'sari.dewi@example.com',
             total_points: newPoints,
-            membership_level: calculatedMembershipLevel, // Use calculated level instead of DB value
+            membership_level: newMembershipLevel,
             total_visits: profileData.total_visits || (pointsData as any)?.total_visits || 0,
             total_spent: profileData.total_spent || (pointsData as any)?.total_spent || 0,
             qr_code: profileData.qr_code || `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
@@ -129,12 +129,13 @@ export default function CustomerHomePage() {
           })
           .then(profileData => {
             const newPoints = profileData.total_points || 0
-            const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
+            const newMembershipLevel = profileData.membership_level ||
+              (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
 
             setCustomer(prev => prev ? {
               ...prev,
               total_points: newPoints,
-              membership_level: calculatedMembershipLevel,
+              membership_level: newMembershipLevel,
               total_visits: profileData.total_visits || prev.total_visits,
               total_spent: profileData.total_spent || prev.total_spent,
               updated_at: profileData.updated_at || prev.updated_at,
@@ -173,8 +174,8 @@ export default function CustomerHomePage() {
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden sticky top-0 z-10">
+      {/* Header - FIXED: Increased z-index to z-50 */}
+      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden sticky top-0 z-50">
         <div className="absolute top-0 right-[-50px] w-[120px] h-[120px] bg-white/10 rounded-full transform translate-x-5 -translate-y-5"></div>
         
         <div className="max-w-md mx-auto px-5 py-6 relative z-10">
@@ -222,8 +223,8 @@ export default function CustomerHomePage() {
       </div>
 
       <div className="max-w-md mx-auto px-5 py-6 space-y-6">
-        {/* Rotating Promo Banners */}
-        <div className="relative">
+        {/* Rotating Promo Banners - FIXED: Reduced z-index to ensure it stays below header */}
+        <div className="relative z-10">
           <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl overflow-hidden relative">
             <div 
               className="h-40 bg-cover bg-center relative transition-all duration-700"
@@ -261,6 +262,22 @@ export default function CustomerHomePage() {
             </div>
           </div>
         </div>
+
+        {/* Badges Section */}
+        <div className="mt-8">
+          <Link href="/customer/rewards">
+            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 cursor-pointer hover:bg-[var(--surface-lighter)] transition-all">
+              <div className="flex items-center gap-3">
+                <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
+                <div>
+                  <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Badges & Mission</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">Collect badges and unlock more rewards</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
         {/* Membership Progress */}
         <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -303,22 +320,6 @@ export default function CustomerHomePage() {
             </div>
           )}
         </div>
-        {/* Badges Section */}
-        <div className="mt-8">
-          <Link href="/customer/rewards">
-            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 cursor-pointer hover:bg-[var(--surface-lighter)] transition-all">
-              <div className="flex items-center gap-3">
-                <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
-                <div>
-                  <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Badges & Mission</h3>
-                  <p className="text-sm text-[var(--text-secondary)]">Collect badges and unlock more rewards</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-
       </div>
     </div>
   )
