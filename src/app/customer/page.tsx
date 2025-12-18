@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Customer } from '@/lib/types'
-import { cache, CACHE_KEYS } from '@/lib/cache'
 
 const FIXED_CUSTOMER_ID = '550e8400-e29b-41d4-a716-446655440001'
 
@@ -32,57 +31,67 @@ export default function CustomerHomePage() {
   const [loading, setLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
 
-  // Fetch customer data with caching
-  const fetchCustomerData = async (useCache = true) => {
-    try {
-      // Check cache first
-      if (useCache) {
-        const cachedData = cache.get(CACHE_KEYS.CUSTOMER_DATA)
-        if (cachedData) {
-          setCustomer(cachedData)
-          setLoading(false)
-          return
+  // Initial load effect
+  useEffect(() => {
+    const loadCustomerData = async () => {
+      try {
+        setLoading(true)
+
+        // Fetch customer profile and points
+        const profileResponse = await fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
+        const pointsResponse = await fetch(`/api/user/points?userId=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json()
+
+          // Get points data if available
+          let pointsData: any = {}
+          if (pointsResponse.ok) {
+            pointsData = await pointsResponse.json()
+          }
+
+          const newPoints = profileData.total_points || (pointsData as any)?.current_points || 0
+          const newMembershipLevel = profileData.membership_level || (pointsData as any)?.membership_level ||
+            (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
+
+          const mappedCustomer: Customer = {
+            id: FIXED_CUSTOMER_ID,
+            customer_id: FIXED_CUSTOMER_ID,
+            name: profileData.full_name || 'Sari Dewi',
+            phone: profileData.phone || '081234567890',
+            email: profileData.email || 'sari.dewi@example.com',
+            total_points: newPoints,
+            membership_level: newMembershipLevel,
+            total_visits: profileData.total_visits || (pointsData as any)?.total_visits || 0,
+            total_spent: profileData.total_spent || (pointsData as any)?.total_spent || 0,
+            qr_code: profileData.qr_code || `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
+            created_at: profileData.created_at || new Date().toISOString(),
+            updated_at: profileData.updated_at || new Date().toISOString(),
+            last_visit: profileData.updated_at || new Date().toISOString()
+          }
+
+          setCustomer(mappedCustomer)
+        } else {
+          // Set fallback data
+          const fallbackCustomer: Customer = {
+            id: FIXED_CUSTOMER_ID,
+            customer_id: FIXED_CUSTOMER_ID,
+            name: 'Sari Dewi',
+            phone: '081234567890',
+            email: 'sari.dewi@example.com',
+            total_points: 0,
+            membership_level: 'Bronze',
+            total_visits: 0,
+            total_spent: 0,
+            qr_code: `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_visit: new Date().toISOString()
+          }
+          setCustomer(fallbackCustomer)
         }
-      }
-
-      setLoading(true)
-
-      // Fetch fresh data
-      const profileResponse = await fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
-      const pointsResponse = await fetch(`/api/user/points?userId=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
-
-      if (profileResponse.ok) {
-        const profileData = await profileResponse.json()
-
-        let pointsData: any = {}
-        if (pointsResponse.ok) {
-          pointsData = await pointsResponse.json()
-        }
-
-        const newPoints = profileData.total_points || pointsData?.current_points || 0
-        const newMembershipLevel = profileData.membership_level || pointsData?.membership_level ||
-          (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
-
-        const mappedCustomer: Customer = {
-          id: FIXED_CUSTOMER_ID,
-          customer_id: FIXED_CUSTOMER_ID,
-          name: profileData.full_name || 'Sari Dewi',
-          phone: profileData.phone || '081234567890',
-          email: profileData.email || 'sari.dewi@example.com',
-          total_points: newPoints,
-          membership_level: newMembershipLevel,
-          total_visits: profileData.total_visits || pointsData?.total_visits || 0,
-          total_spent: profileData.total_spent || pointsData?.total_spent || 0,
-          qr_code: profileData.qr_code || `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
-          created_at: profileData.created_at || new Date().toISOString(),
-          updated_at: profileData.updated_at || new Date().toISOString(),
-          last_visit: profileData.updated_at || new Date().toISOString()
-        }
-
-        setCustomer(mappedCustomer)
-        // Cache the fresh data
-        cache.set(CACHE_KEYS.CUSTOMER_DATA, mappedCustomer)
-      } else {
+      } catch (err) {
+        console.error('Error loading customer data:', err)
         // Set fallback data
         const fallbackCustomer: Customer = {
           id: FIXED_CUSTOMER_ID,
@@ -100,47 +109,30 @@ export default function CustomerHomePage() {
           last_visit: new Date().toISOString()
         }
         setCustomer(fallbackCustomer)
-        cache.set(CACHE_KEYS.CUSTOMER_DATA, fallbackCustomer)
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      console.error('Error loading customer data:', err)
-      // Set fallback data on error
-      const fallbackCustomer: Customer = {
-        id: FIXED_CUSTOMER_ID,
-        customer_id: FIXED_CUSTOMER_ID,
-        name: 'Sari Dewi',
-        phone: '081234567890',
-        email: 'sari.dewi@example.com',
-        total_points: 0,
-        membership_level: 'Bronze',
-        total_visits: 0,
-        total_spent: 0,
-        qr_code: `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        last_visit: new Date().toISOString()
-      }
-      setCustomer(fallbackCustomer)
-    } finally {
-      setLoading(false)
     }
-  }
 
-  // Background refresh for real-time updates
-  const backgroundRefresh = async () => {
-    if (document.visibilityState === 'visible') {
-      try {
-        const response = await fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
-        if (response.ok) {
-          const profileData = await response.json()
-          const newPoints = profileData.total_points || 0
-          const newMembershipLevel = profileData.membership_level ||
-            (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
+    loadCustomerData()
 
-          setCustomer(prev => {
-            if (!prev) return prev
-            
-            const updated = {
+    // Set up background refresh - much less frequent
+    const refreshInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        // Silent background refresh without loading state
+        fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
+          .then(res => {
+            if (res.ok) {
+              return res.json()
+            }
+            throw new Error('Failed to fetch')
+          })
+          .then(profileData => {
+            const newPoints = profileData.total_points || 0
+            const newMembershipLevel = profileData.membership_level ||
+              (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
+
+            setCustomer(prev => prev ? {
               ...prev,
               total_points: newPoints,
               membership_level: newMembershipLevel,
@@ -148,37 +140,14 @@ export default function CustomerHomePage() {
               total_spent: profileData.total_spent || prev.total_spent,
               updated_at: profileData.updated_at || prev.updated_at,
               last_visit: profileData.updated_at || prev.last_visit
-            }
-            
-            // Update cache with fresh data
-            cache.set(CACHE_KEYS.CUSTOMER_DATA, updated)
-            return updated
+            } : prev)
           })
-        }
-      } catch (err) {
-        console.error('Background refresh error:', err)
+          .catch(err => console.error('Background refresh error:', err))
       }
-    }
-  }
-
-  useEffect(() => {
-    fetchCustomerData(true) // Use cache on initial load
-
-    // Background refresh every 30 seconds
-    const refreshInterval = setInterval(backgroundRefresh, 30000)
-
-    // Refresh when tab becomes visible
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        backgroundRefresh()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    }, 60000) // Every minute only
 
     return () => {
       clearInterval(refreshInterval)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
@@ -205,16 +174,8 @@ export default function CustomerHomePage() {
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      {/* Header - FIXED: Increased z-index to z-50 */}
-      <div 
-        className="sticky-header bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden sticky top-0 z-50"
-        style={{ 
-          position: 'sticky', 
-          top: 0, 
-          zIndex: 50,
-          willChange: 'transform'
-        }}
-      >
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white relative overflow-hidden sticky top-0 z-10">
         <div className="absolute top-0 right-[-50px] w-[120px] h-[120px] bg-white/10 rounded-full transform translate-x-5 -translate-y-5"></div>
         
         <div className="max-w-md mx-auto px-5 py-6 relative z-10">
@@ -262,8 +223,8 @@ export default function CustomerHomePage() {
       </div>
 
       <div className="max-w-md mx-auto px-5 py-6 space-y-6">
-        {/* Rotating Promo Banners - FIXED: Reduced z-index to ensure it stays below header */}
-        <div className="relative z-10">
+        {/* Rotating Promo Banners */}
+        <div className="relative">
           <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl overflow-hidden relative">
             <div 
               className="h-40 bg-cover bg-center relative transition-all duration-700"
@@ -301,6 +262,22 @@ export default function CustomerHomePage() {
             </div>
           </div>
         </div>
+
+        {/* Missions Section - Changed from Badges & Mission */}
+        <div className="mt-8">
+          <Link href="/customer/missions">
+            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 cursor-pointer hover:bg-[var(--surface-lighter)] transition-all">
+              <div className="flex items-center gap-3">
+                <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
+                <div>
+                  <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Missions & Challenges</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">Complete missions for bonus points</p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
         {/* Membership Progress */}
         <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -343,22 +320,6 @@ export default function CustomerHomePage() {
             </div>
           )}
         </div>
-        {/* Badges Section */}
-        <div className="mt-8">
-          <Link href="/customer/rewards">
-            <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5 cursor-pointer hover:bg-[var(--surface-lighter)] transition-all">
-              <div className="flex items-center gap-3">
-                <i className="material-icons text-2xl text-[var(--primary)]">emoji_events</i>
-                <div>
-                  <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">Badges & Mission</h3>
-                  <p className="text-sm text-[var(--text-secondary)]">Collect badges and unlock more rewards</p>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-
       </div>
     </div>
   )

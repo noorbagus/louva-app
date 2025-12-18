@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Direct supabase client creation
 const supabaseUrl = 'https://znsmbtnlfqdumnrmvijh.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc'
 const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTk3MzQwNiwiZXhwIjoyMDgxNTQ5NDA2fQ.NAAyUacn3xdKsf15vOETFXuCx6P86LxqdMvQwy__QW4'
@@ -9,7 +8,6 @@ const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmF
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
-// Fixed admin account for prototype
 const FIXED_ADMIN_ID = '550e8400-e29b-41d4-a716-446655440002'
 
 export async function POST(request: NextRequest) {
@@ -20,7 +18,8 @@ export async function POST(request: NextRequest) {
       service_ids,
       payment_method_id,
       notes,
-      service_prices
+      service_prices,
+      mission_id // New field for mission completion
     } = body
 
     if (!user_id || !service_ids || !payment_method_id || !service_prices) {
@@ -91,7 +90,42 @@ export async function POST(request: NextRequest) {
 
     totalPointsEarned = Math.floor(totalPointsEarned * membershipMultiplier)
 
-    // Start transaction
+    // Check for mission bonus
+    let missionBonusPoints = 0
+    let missionData = null
+
+    if (mission_id) {
+      const { data: activeMission } = await supabase
+        .from('user_missions')
+        .select(`
+          *,
+          mission:missions (
+            id,
+            title,
+            bonus_points,
+            service_id
+          )
+        `)
+        .eq('user_id', user_id)
+        .eq('mission_id', mission_id)
+        .eq('status', 'active')
+        .single()
+
+      if (activeMission && activeMission.mission) {
+        // Check if this service matches the mission requirement
+        const missionServiceId = activeMission.mission.service_id
+        const serviceMatches = !missionServiceId || service_ids.includes(missionServiceId)
+
+        if (serviceMatches) {
+          missionBonusPoints = activeMission.mission.bonus_points
+          missionData = activeMission.mission
+        }
+      }
+    }
+
+    const finalPointsEarned = totalPointsEarned + missionBonusPoints
+
+    // Create transaction
     const { data: transaction, error: transactionError } = await supabaseAdmin
       .from('transactions')
       .insert({
@@ -99,7 +133,9 @@ export async function POST(request: NextRequest) {
         admin_id: FIXED_ADMIN_ID,
         payment_method_id,
         total_amount: totalAmount,
-        points_earned: totalPointsEarned,
+        points_earned: finalPointsEarned,
+        mission_id: mission_id || null,
+        mission_bonus_points: missionBonusPoints,
         notes: notes || '',
         status: 'completed'
       })
@@ -130,8 +166,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update customer points and membership level
-    const newPointsBalance = customer.total_points + totalPointsEarned
+    // Complete mission if applicable
+    if (mission_id && missionData) {
+      const { error: missionCompleteError } = await supabaseAdmin
+        .from('user_missions')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
+        .eq('user_id', user_id)
+        .eq('mission_id', mission_id)
+
+      if (missionCompleteError) {
+        console.error('Error completing mission:', missionCompleteError)
+      }
+    }
+
+    // Update customer points and membership
+    const newPointsBalance = customer.total_points + finalPointsEarned
     const newMembershipLevel = newPointsBalance >= 1000 ? 'Gold' : newPointsBalance >= 500 ? 'Silver' : 'Bronze'
 
     const { error: updateError } = await supabaseAdmin
@@ -147,22 +199,23 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('Error updating customer points:', updateError)
-      return NextResponse.json(
-        { error: 'Failed to update customer points' },
-        { status: 500 }
-      )
     }
 
     // Add to points history
+    let description = 'Transaction: ' + services.map(s => s.name).join(', ')
+    if (missionData) {
+      description += ` + Mission: ${missionData.title}`
+    }
+
     const { error: historyError } = await supabaseAdmin
       .from('points_history')
       .insert({
         user_id,
         transaction_id: transaction.id,
-        points_change: totalPointsEarned,
+        points_change: finalPointsEarned,
         balance_after: newPointsBalance,
         type: 'earn',
-        description: 'Transaction: ' + services.map(s => s.name).join(', ')
+        description
       })
 
     if (historyError) {
@@ -174,9 +227,15 @@ export async function POST(request: NextRequest) {
       customer: {
         ...customer,
         total_points: newPointsBalance,
-        membership_level: newPointsBalance >= 1000 ? 'Gold' : newPointsBalance >= 500 ? 'Silver' : 'Bronze'
+        membership_level: newMembershipLevel
       },
-      message: 'Transaction completed successfully'
+      mission_completed: missionData ? {
+        title: missionData.title,
+        bonus_points: missionBonusPoints
+      } : null,
+      message: missionData 
+        ? `Transaction completed! Mission "${missionData.title}" completed with +${missionBonusPoints} bonus points!`
+        : 'Transaction completed successfully'
     })
   } catch (error) {
     console.error('Error in transaction API:', error)
@@ -187,6 +246,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// GET method remains the same as before
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -210,6 +270,10 @@ export async function GET(request: NextRequest) {
         payment_methods (
           name,
           type
+        ),
+        missions (
+          title,
+          bonus_points
         )
       `)
       .eq('status', 'completed')

@@ -10,10 +10,19 @@ import type { Customer } from '@/lib/types'
 
 const FIXED_CUSTOMER_ID = '550e8400-e29b-41d4-a716-446655440001'
 
+interface ActiveMission {
+  mission_id: string
+  title: string
+  bonus_points: number
+  service_name?: string
+  service_price?: number
+  expires_at: string
+}
+
 export default function CustomerQRPage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
+  const [activeMissions, setActiveMissions] = useState<ActiveMission[]>([])
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
-  const [lastQRTime, setLastQRTime] = useState<Date | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchCustomerData = useCallback(async (showLoading = false) => {
@@ -31,8 +40,8 @@ export default function CustomerQRPage() {
         const pointsData = await pointsResponse.json()
 
         const newPoints = profileData.total_points || pointsData.current_points || 0
-        // Calculate membership level based on current points
-        const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
+        const newMembershipLevel = profileData.membership_level || pointsData.membership_level ||
+          (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
 
         setCustomer({
           id: FIXED_CUSTOMER_ID,
@@ -41,11 +50,20 @@ export default function CustomerQRPage() {
           phone: profileData.phone || '+628123456789',
           email: profileData.email || 'sari.dewi@example.com',
           total_points: newPoints,
-          membership_level: calculatedMembershipLevel, // Use calculated level
+          membership_level: newMembershipLevel,
           created_at: profileData.created_at || new Date().toISOString(),
           last_visit: profileData.updated_at || new Date().toISOString()
         })
       }
+
+      // Fetch active missions
+      const missionsResponse = await fetch(`/api/missions?user_id=${FIXED_CUSTOMER_ID}`)
+      if (missionsResponse.ok) {
+        const missionsData = await missionsResponse.json()
+        const activeMissionsList = missionsData.missions.filter((m: any) => m.user_status === 'active')
+        setActiveMissions(activeMissionsList)
+      }
+
     } catch (error) {
       console.error('Error fetching customer data:', error)
     } finally {
@@ -81,7 +99,17 @@ export default function CustomerQRPage() {
 
   const handleOpenQR = () => {
     setIsQRModalOpen(true)
-    setLastQRTime(new Date())
+  }
+
+  const formatTimeRemaining = (expiresAt: string) => {
+    const now = new Date()
+    const expiry = new Date(expiresAt)
+    const diffMs = expiry.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+    
+    if (diffDays <= 0) return 'Expired'
+    if (diffDays === 1) return '1 day left'
+    return `${diffDays} days left`
   }
 
   if (loading) {
@@ -198,25 +226,42 @@ export default function CustomerQRPage() {
           </div>
         </div>
 
-         {/* QR Button */}
-        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-2xl p-5">
-          <Button
-            onClick={handleOpenQR}
-            size="lg"
-            className="w-full shadow-lg hover:shadow-xl"
-          >
-            <span className="material-icons text-lg" style={{color: '#ffffff !important'}}>qr_code_2</span>
-            Show QR Code
-          </Button>
-
-          <p className="text-center text-xs text-[var(--text-muted)] mt-3">
-            {customer.membership_level === 'Gold'
-              ? '✨ VIP access ready • Show to our stylist'
-              : customer.membership_level === 'Silver'
-              ? '⭐ Premium member • Earn 1.2x points'
-              : '🎯 Start your beauty journey • Earn points'}
-          </p>
-        </div>
+        {/* Active Missions Alert */}
+        {activeMissions.length > 0 && (
+          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <i className="material-icons text-green-400 text-xl">emoji_events</i>
+              <div>
+                <h3 className="font-semibold text-green-400">Active Missions</h3>
+                <p className="text-xs text-green-300">Show this QR to complete missions</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {activeMissions.map((mission) => (
+                <div key={mission.mission_id} className="bg-white/10 rounded-lg p-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-white text-sm">{mission.title}</p>
+                      {mission.service_name && (
+                        <p className="text-xs text-green-200">
+                          Service: {mission.service_name} (Rp {mission.service_price?.toLocaleString()})
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <Badge className="bg-green-500/20 text-green-400 text-xs">
+                        +{mission.bonus_points} pts
+                      </Badge>
+                      <p className="text-xs text-green-200 mt-1">
+                        {formatTimeRemaining(mission.expires_at)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Card Features */}
         <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-2xl p-5">
@@ -271,7 +316,7 @@ export default function CustomerQRPage() {
 
         {/* Next level progress */}
         {customer.membership_level !== 'Gold' && (
-          <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-2xl p-5">
+          <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-4 text-[var(--text-primary)]">
               {customer.membership_level === 'Bronze' ? 'Next Level: Silver (500 pts)' : 'Next Level: Gold (1000 pts)'}
             </h3>
@@ -296,7 +341,27 @@ export default function CustomerQRPage() {
           </div>
         )}
 
-       
+        {/* QR Button */}
+        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-2xl p-5">
+          <Button
+            onClick={handleOpenQR}
+            size="lg"
+            className="w-full shadow-lg hover:shadow-xl"
+          >
+            <span className="material-icons text-lg">qr_code_2</span>
+            Show QR Code
+          </Button>
+
+          <p className="text-center text-xs text-[var(--text-muted)] mt-3">
+            {activeMissions.length > 0 
+              ? `🎯 ${activeMissions.length} active mission${activeMissions.length > 1 ? 's' : ''} • Show to staff`
+              : customer.membership_level === 'Gold'
+              ? '✨ VIP access ready • Show to our stylist'
+              : customer.membership_level === 'Silver'
+              ? '⭐ Premium member • Earn 1.2x points'
+              : '🎯 Start your beauty journey • Earn points'}
+          </p>
+        </div>
       </div>
 
       {/* QR Modal */}
