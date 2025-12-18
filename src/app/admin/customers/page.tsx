@@ -259,7 +259,7 @@ export default function CustomersPage() {
             <div className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 items-center">
               {/* Avatar */}
               <div className={`w-10 h-10 ${getMembershipColor(customer.membership_level)} rounded-lg overflow-hidden border border-white/30`}>
-                {customer.email === 'sari.dewi@example.com' ? (
+                {customer.email === 'sari.dewi@mail.co.id' ? (
                   <img
                     src="https://images.pexels.com/photos/4921066/pexels-photo-4921066.jpeg"
                     alt={customer.name}

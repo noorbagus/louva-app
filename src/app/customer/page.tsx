@@ -51,8 +51,8 @@ export default function CustomerHomePage() {
           }
 
           const newPoints = profileData.total_points || (pointsData as any)?.current_points || 0
-          const newMembershipLevel = profileData.membership_level || (pointsData as any)?.membership_level ||
-            (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
+          // Always calculate membership level from current points
+          const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
 
           const mappedCustomer: Customer = {
             id: FIXED_CUSTOMER_ID,
@@ -61,7 +61,7 @@ export default function CustomerHomePage() {
             phone: profileData.phone || '081234567890',
             email: profileData.email || 'sari.dewi@example.com',
             total_points: newPoints,
-            membership_level: newMembershipLevel,
+            membership_level: calculatedMembershipLevel, // Use calculated level instead of DB value
             total_visits: profileData.total_visits || (pointsData as any)?.total_visits || 0,
             total_spent: profileData.total_spent || (pointsData as any)?.total_spent || 0,
             qr_code: profileData.qr_code || `LOUVA_${FIXED_CUSTOMER_ID}_${new Date().toISOString()}`,
@@ -129,13 +129,12 @@ export default function CustomerHomePage() {
           })
           .then(profileData => {
             const newPoints = profileData.total_points || 0
-            const newMembershipLevel = profileData.membership_level ||
-              (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
+            const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
 
             setCustomer(prev => prev ? {
               ...prev,
               total_points: newPoints,
-              membership_level: newMembershipLevel,
+              membership_level: calculatedMembershipLevel,
               total_visits: profileData.total_visits || prev.total_visits,
               total_spent: profileData.total_spent || prev.total_spent,
               updated_at: profileData.updated_at || prev.updated_at,

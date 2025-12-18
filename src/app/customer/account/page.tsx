@@ -30,14 +30,18 @@ export default function CustomerAccountPage() {
 
         setPointsData(pointsData)
 
+        const newPoints = profileData.total_points || pointsData.current_points || 0
+        // Calculate membership level based on current points
+        const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
+
         setCustomer({
           id: FIXED_CUSTOMER_ID,
           customer_id: FIXED_CUSTOMER_ID,
           name: profileData.full_name || 'Sari Dewi',
           phone: profileData.phone || '+628123456789',
           email: profileData.email || 'sari.dewi@example.com',
-          total_points: profileData.total_points || pointsData.current_points || 0,
-          membership_level: profileData.membership_level || pointsData.membership_level || 'Bronze',
+          total_points: newPoints,
+          membership_level: calculatedMembershipLevel, // Use calculated level
           total_visits: profileData.total_visits || 0,
           total_spent: profileData.total_spent || 0,
           created_at: profileData.created_at || new Date().toISOString(),

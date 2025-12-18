@@ -14,44 +14,21 @@ export default function CustomerRewardsPage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [rewards, setRewards] = useState<Reward[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchCustomerAndRewardsData()
+    fetchData()
   }, [])
 
-  const fetchCustomerAndRewardsData = async () => {
+  const fetchData = async () => {
     try {
       setIsLoading(true)
-      // Fetch customer profile, points, and rewards
-      const profileResponse = await fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}`)
-      const pointsResponse = await fetch(`/api/user/points?userId=${FIXED_CUSTOMER_ID}`)
-      const rewardsResponse = await fetch('/api/rewards')
+      setError(null)
 
-      if (profileResponse.ok && pointsResponse.ok) {
-        const profileData = await profileResponse.json()
-        const pointsData = await pointsResponse.json()
-
-        setCustomer({
-          id: FIXED_CUSTOMER_ID,
-          customer_id: FIXED_CUSTOMER_ID,
-          name: profileData.full_name || 'Sari Dewi',
-          phone: profileData.phone || '+628123456789',
-          email: profileData.email || 'sari.dewi@example.com',
-          total_points: profileData.total_points || pointsData.current_points || 0,
-          membership_level: profileData.membership_level || pointsData.membership_level || 'Bronze',
-          created_at: profileData.created_at || new Date().toISOString(),
-          last_visit: profileData.updated_at || new Date().toISOString()
-        })
-      }
-
-      if (rewardsResponse.ok) {
-        const rewardsData = await rewardsResponse.json()
-        setRewards(rewardsData.filter((r: Reward) => r.is_active))
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error)
-      // Set fallback data
-      setCustomer({
+      // Fetch customer data
+      const profileResponse = await fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
+      
+      let customerData: Customer = {
         id: FIXED_CUSTOMER_ID,
         customer_id: FIXED_CUSTOMER_ID,
         name: 'Sari Dewi',
@@ -61,7 +38,38 @@ export default function CustomerRewardsPage() {
         membership_level: 'Bronze',
         created_at: new Date().toISOString(),
         last_visit: new Date().toISOString()
-      })
+      }
+
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json()
+        const newPoints = profileData.total_points || 0
+        const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
+
+        customerData = {
+          id: FIXED_CUSTOMER_ID,
+          customer_id: FIXED_CUSTOMER_ID,
+          name: profileData.full_name || 'Sari Dewi',
+          phone: profileData.phone || '+628123456789',
+          email: profileData.email || 'sari.dewi@example.com',
+          total_points: newPoints,
+          membership_level: calculatedMembershipLevel,
+          created_at: profileData.created_at || new Date().toISOString(),
+          last_visit: profileData.updated_at || new Date().toISOString()
+        }
+      }
+
+      setCustomer(customerData)
+
+      // Fetch rewards data
+      const rewardsResponse = await fetch('/api/rewards')
+      if (rewardsResponse.ok) {
+        const rewardsData = await rewardsResponse.json()
+        setRewards(rewardsData.filter((r: Reward) => r.is_active))
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      setError('Failed to load data')
     } finally {
       setIsLoading(false)
     }
@@ -78,7 +86,21 @@ export default function CustomerRewardsPage() {
     )
   }
 
-  if (!customer) return null
+  if (error || !customer) {
+    return (
+      <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400">{error || 'Failed to load customer data'}</p>
+          <button 
+            onClick={fetchData}
+            className="mt-4 px-4 py-2 bg-[var(--primary)] text-white rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
@@ -114,7 +136,7 @@ export default function CustomerRewardsPage() {
 
           <div className="grid grid-cols-2 gap-4 mb-6">
             {rewards.map((reward) => {
-              const canAfford = customer && customer.total_points >= reward.points_required
+              const canAfford = customer.total_points >= reward.points_required
               const getIcon = (name: string) => {
                 if (name.toLowerCase().includes('voucher') || name.toLowerCase().includes('discount')) return 'local_offer'
                 if (name.toLowerCase().includes('hair') || name.toLowerCase().includes('cut')) return 'content_cut'
@@ -151,6 +173,12 @@ export default function CustomerRewardsPage() {
                 </div>
               )
             })}
+
+            {rewards.length === 0 && (
+              <div className="col-span-2 text-center py-8">
+                <p className="text-[var(--text-muted)]">No rewards available</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

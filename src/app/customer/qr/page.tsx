@@ -31,8 +31,8 @@ export default function CustomerQRPage() {
         const pointsData = await pointsResponse.json()
 
         const newPoints = profileData.total_points || pointsData.current_points || 0
-        const newMembershipLevel = profileData.membership_level || pointsData.membership_level ||
-          (newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze')
+        // Calculate membership level based on current points
+        const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
 
         setCustomer({
           id: FIXED_CUSTOMER_ID,
@@ -41,7 +41,7 @@ export default function CustomerQRPage() {
           phone: profileData.phone || '+628123456789',
           email: profileData.email || 'sari.dewi@example.com',
           total_points: newPoints,
-          membership_level: newMembershipLevel,
+          membership_level: calculatedMembershipLevel, // Use calculated level
           created_at: profileData.created_at || new Date().toISOString(),
           last_visit: profileData.updated_at || new Date().toISOString()
         })
@@ -160,7 +160,7 @@ export default function CustomerQRPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-white/95 text-xs font-medium mb-1 tracking-wide">GOLD</div>
+                  <div className="text-white/95 text-xs font-medium mb-1 tracking-wide">{customer.membership_level.toUpperCase()}</div>
                   <p className="text-sm text-white/90">
                     {customer.email}
                   </p>
@@ -181,7 +181,7 @@ export default function CustomerQRPage() {
                 </div>
                 <div className="text-xs mt-1 text-white/80 flex items-center gap-1">
                   <span className="inline-block w-1 h-1 bg-white rounded-full"></span>
-                  ✨ Elite Status
+                  ✨ {customer.membership_level} Status
                 </div>
               </div>
 
@@ -196,6 +196,26 @@ export default function CustomerQRPage() {
               </div>
             </div>
           </div>
+        </div>
+
+         {/* QR Button */}
+        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-2xl p-5">
+          <Button
+            onClick={handleOpenQR}
+            size="lg"
+            className="w-full shadow-lg hover:shadow-xl"
+          >
+            <span className="material-icons text-lg">qr_code_2</span>
+            Show QR Code
+          </Button>
+
+          <p className="text-center text-xs text-[var(--text-muted)] mt-3">
+            {customer.membership_level === 'Gold'
+              ? '✨ VIP access ready • Show to our stylist'
+              : customer.membership_level === 'Silver'
+              ? '⭐ Premium member • Earn 1.2x points'
+              : '🎯 Start your beauty journey • Earn points'}
+          </p>
         </div>
 
         {/* Card Features */}
@@ -276,25 +296,7 @@ export default function CustomerQRPage() {
           </div>
         )}
 
-        {/* QR Button */}
-        <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-2xl p-5">
-          <Button
-            onClick={handleOpenQR}
-            size="lg"
-            className="w-full shadow-lg hover:shadow-xl"
-          >
-            <span className="material-icons text-lg">qr_code_2</span>
-            Show QR Code
-          </Button>
-
-          <p className="text-center text-xs text-[var(--text-muted)] mt-3">
-            {customer.membership_level === 'Gold'
-              ? '✨ VIP access ready • Show to our stylist'
-              : customer.membership_level === 'Silver'
-              ? '⭐ Premium member • Earn 1.2x points'
-              : '🎯 Start your beauty journey • Earn points'}
-          </p>
-        </div>
+       
       </div>
 
       {/* QR Modal */}

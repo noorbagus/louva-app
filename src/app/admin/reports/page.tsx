@@ -1,15 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Card } from '@/components/shared/Card'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/shared/Button'
-import { Badge } from '@/components/shared/Badge'
-import { supabase } from '@/lib/supabase-frontend'
+import { Card } from '@/components/shared/Card'
 
-export default function ReportsPage() {
+interface ReportData {
+  totalRevenue: number
+  totalCustomers: number
+  revenueGrowth: number
+  topServices: Array<[string, number, number]> // [name, revenue, booking_count]
+}
+
+export default function AdminReportsPage() {
   const [period, setPeriod] = useState('today')
-  const [reportData, setReportData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [reportData, setReportData] = useState<ReportData | null>(null)
 
   useEffect(() => {
     fetchReportData()
@@ -18,76 +23,46 @@ export default function ReportsPage() {
   const fetchReportData = async () => {
     setLoading(true)
     try {
-      // Calculate date range based on period
-      const now = new Date()
-      let startDate: Date
+      // Fetch top services data from API
+      const response = await fetch(`/api/admin/reports/top-services?period=${period}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        // Transform data for UI
+        const topServices = data.top_services?.map((service: any) => [
+          service.service_name,
+          service.total_revenue,
+          service.booking_count
+        ]) || []
 
-      switch (period) {
-        case 'week':
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-          break
-        case 'month':
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-          break
-        case 'year':
-          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
-          break
-        default:
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        setReportData({
+          totalRevenue: data.total_revenue || 0,
+          totalCustomers: data.total_bookings || 0,
+          revenueGrowth: 15.2, // Mock data for now
+          topServices
+        })
+      } else {
+        throw new Error(data.error || 'Failed to fetch data')
       }
-
-      // Fetch transactions for the period
-      const { data: transactions } = await supabase
-        .from('transactions')
-        .select('*')
-        .gte('created_at', startDate.toISOString())
-
-      // Fetch transaction services for revenue breakdown
-      const { data: transactionServices } = await supabase
-        .from('transaction_services')
-        .select(`
-          price,
-          service:services(name)
-        `)
-        .gte('created_at', startDate.toISOString())
-
-      // Calculate metrics
-      const totalRevenue = transactions?.reduce((sum, t) => sum + t.total_amount, 0) || 0
-      const totalCustomers = new Set(transactions?.map(t => t.user_id)).size
-      const yesterdayRevenue = 10000000 // Mock data for comparison
-      const revenueGrowth = totalRevenue > 0 ? ((totalRevenue - yesterdayRevenue) / yesterdayRevenue * 100) : 0
-
-      // Group services by name for top services
-      const serviceRevenue = transactionServices?.reduce((acc, ts) => {
-        const serviceName = (ts.service as any)?.name || 'Unknown'
-        acc[serviceName] = (acc[serviceName] || 0) + ts.price
-        return acc
-      }, {} as Record<string, number>)
-
-      const topServices = Object.entries(serviceRevenue || {})
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 5)
-
-      setReportData({
-        totalRevenue,
-        totalCustomers,
-        revenueGrowth,
-        topServices
-      })
     } catch (error) {
       console.error('Error fetching report data:', error)
+      // Fallback to empty state
+      setReportData({
+        totalRevenue: 0,
+        totalCustomers: 0,
+        revenueGrowth: 0,
+        topServices: []
+      })
     } finally {
       setLoading(false)
     }
   }
 
   const handleExportPDF = () => {
-    // Mock export functionality
     alert('Exporting PDF report...')
   }
 
   const handleExportExcel = () => {
-    // Mock export functionality
     alert('Exporting Excel report...')
   }
 
@@ -128,26 +103,26 @@ export default function ReportsPage() {
         <Card className="p-5 bg-[var(--surface-light)] border-[var(--border)]">
           <div className="flex items-center gap-3 mb-3">
             <span className="material-icons text-[var(--success)]">trending_up</span>
-            <span className="text-sm text-[var(--text-muted)]">Daily Revenue</span>
+            <span className="text-sm text-[var(--text-muted)]">Total Revenue</span>
           </div>
           <div className="text-2xl font-bold text-[var(--text-primary)]">
             Rp {((reportData?.totalRevenue || 0) / 1000000).toFixed(1)}M
           </div>
-          <div className={`text-sm mt-2 ${reportData?.revenueGrowth >= 0 ? 'text-[var(--success)]' : 'text-[var(--error)]'}`}>
-            {reportData?.revenueGrowth >= 0 ? '+' : ''}{reportData?.revenueGrowth?.toFixed(1)}% from yesterday
+          <div className={`text-sm mt-2 ${(reportData?.revenueGrowth ?? 0) >= 0 ? 'text-[var(--success)]' : 'text-[var(--error)]'}`}>
+            {(reportData?.revenueGrowth ?? 0) >= 0 ? '+' : ''}{(reportData?.revenueGrowth ?? 0).toFixed(1)}% from yesterday
           </div>
         </Card>
 
         <Card className="p-5 bg-[var(--surface-light)] border-[var(--border)]">
           <div className="flex items-center gap-3 mb-3">
-            <span className="material-icons text-[var(--accent)]">people</span>
-            <span className="text-sm text-[var(--text-muted)]">Customers</span>
+            <span className="material-icons text-[var(--accent)]">local_activity</span>
+            <span className="text-sm text-[var(--text-muted)]">Total Bookings</span>
           </div>
           <div className="text-2xl font-bold text-[var(--text-primary)]">
             {reportData?.totalCustomers || 0}
           </div>
           <div className="text-sm text-[var(--success)] mt-2">
-            +3 from yesterday
+            From {period === 'today' ? 'today' : `this ${period}`}
           </div>
         </Card>
       </div>
@@ -156,19 +131,44 @@ export default function ReportsPage() {
       <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
         Top Services {period === 'today' ? 'Today' : period === 'week' ? 'This Week' : period === 'month' ? 'This Month' : 'This Year'}
       </h2>
-      <Card className="bg-[var(--surface-light)] border-[var(--border)] divide-y divide-[var(--border)] mb-6">
-        {reportData?.topServices?.map(([serviceName, revenue]: [string, number], index: number) => (
-          <div key={serviceName} className="p-4 flex justify-between items-center">
-            <div>
-              <h3 className="font-medium text-[var(--text-primary)]">{serviceName}</h3>
-              <p className="text-sm text-[var(--text-muted)]">{8 - index} bookings</p>
+      
+      {reportData?.topServices && reportData.topServices.length > 0 ? (
+        <Card className="bg-[var(--surface-light)] border-[var(--border)] divide-y divide-[var(--border)] mb-6">
+          {reportData.topServices.slice(0, 3).map(([serviceName, revenue, bookingCount]: [string, number, number], index: number) => (
+            <div key={serviceName} className="p-4 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
+                  index === 0 ? 'bg-yellow-500' : 
+                  index === 1 ? 'bg-gray-400' : 
+                  index === 2 ? 'bg-amber-600' : 'bg-[var(--accent)]'
+                }`}>
+                  {index + 1}
+                </div>
+                <div>
+                  <h3 className="font-medium text-[var(--text-primary)]">{serviceName}</h3>
+                  <p className="text-sm text-[var(--text-muted)]">{bookingCount} bookings</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[var(--accent)] font-semibold">
+                  Rp {(revenue / 1000).toLocaleString('id-ID')}K
+                </div>
+                <div className="text-xs text-[var(--text-muted)]">
+                  Avg: Rp {Math.round(revenue / bookingCount / 1000)}K
+                </div>
+              </div>
             </div>
-            <div className="text-[var(--accent)] font-semibold">
-              Rp {(revenue / 1000000).toFixed(1)}M
-            </div>
-          </div>
-        ))}
-      </Card>
+          ))}
+        </Card>
+      ) : (
+        <Card className="bg-[var(--surface-light)] border-[var(--border)] p-8 text-center mb-6">
+          <span className="material-icons text-4xl text-[var(--text-muted)] mb-2 block">spa</span>
+          <h3 className="font-medium text-[var(--text-primary)] mb-1">No Services Data</h3>
+          <p className="text-sm text-[var(--text-muted)]">
+            No transactions found for {period === 'today' ? 'today' : `this ${period}`}
+          </p>
+        </Card>
+      )}
 
       {/* Export Options */}
       <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Export Reports</h2>
@@ -176,18 +176,18 @@ export default function ReportsPage() {
         <Button
           onClick={handleExportPDF}
           variant="outline"
-          className="bg-[var(--surface-light)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-lighter)]"
+          className="bg-[var(--surface-light)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-lighter)] flex flex-col items-center gap-2 py-4"
         >
-          <span className="material-icons mb-2 text-2xl">file_download</span>
-          Download PDF
+          <span className="material-icons text-2xl">file_download</span>
+          <span>Download PDF</span>
         </Button>
         <Button
           onClick={handleExportExcel}
           variant="outline"
-          className="bg-[var(--surface-light)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-lighter)]"
+          className="bg-[var(--surface-light)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-lighter)] flex flex-col items-center gap-2 py-4"
         >
-          <span className="material-icons mb-2 text-2xl">table_chart</span>
-          Export Excel
+          <span className="material-icons text-2xl">table_chart</span>
+          <span>Export Excel</span>
         </Button>
       </div>
     </div>

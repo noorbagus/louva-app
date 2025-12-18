@@ -27,12 +27,31 @@ export function QuickActions() {
               : 'bg-[var(--surface-light)] border-[var(--border)] hover:bg-[var(--surface-lighter)] hover:border-[var(--accent)]'
             }
           `}>
-            <span className="material-icons text-3xl mb-3 block text-[var(--text-primary)]">
-              {action.icon}
-            </span>
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              {action.title}
-            </span>
+            {/* Material Icon dengan spacing yang proper */}
+            <div className="flex flex-col items-center gap-3">
+              <span 
+                className="material-icons text-3xl text-[var(--text-primary)]"
+                style={{
+                  display: 'block',
+                  lineHeight: '1',
+                  marginBottom: '0'
+                }}
+              >
+                {action.icon}
+              </span>
+              
+              {/* Text dengan spacing yang jelas */}
+              <span 
+                className="text-sm font-semibold text-[var(--text-primary)]"
+                style={{
+                  display: 'block',
+                  lineHeight: '1.2',
+                  textAlign: 'center'
+                }}
+              >
+                {action.title}
+              </span>
+            </div>
           </Card>
         </Link>
       ))}
