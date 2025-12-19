@@ -31,11 +31,11 @@ export function AdminBottomNav() {
               }`}
             >
               {/* Icon with proper spacing */}
-              <span 
+              <span
                 className={`material-icons transition-all duration-200 ${
                   isActive ? 'text-xl' : 'text-lg'
                 }`}
-                style={{ 
+                style={{
                   display: 'block',
                   lineHeight: '1',
                   marginBottom: '4px'
@@ -43,9 +43,9 @@ export function AdminBottomNav() {
               >
                 {item.icon}
               </span>
-              
+
               {/* Label with proper spacing */}
-              <span 
+              <span
                 className={`text-xs font-medium transition-all duration-200 ${
                   isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'
                 }`}

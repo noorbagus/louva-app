@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'https://znsmbtnlfqdumnrmvijh.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzM0MDYsImV4cCI6MjA4MTU0OTQwNn0.fnqBm3S3lWlCY4p4Q0Q7an-J2NXmNOQcbMx0n-O0mHc'
 const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpuc21idG5sZnFkdW1ucm12aWpoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTk3MzQwNiwiZXhwIjoyMDgxNTQ5NDA2fQ.NAAyUacn3xdKsf15vOETFXuCx6P86LxqdMvQwy__QW4'
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
 const FIXED_ADMIN_ID = '550e8400-e29b-41d4-a716-446655440002'
@@ -13,24 +10,24 @@ const FIXED_ADMIN_ID = '550e8400-e29b-41d4-a716-446655440002'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const {
-      user_id,
-      service_ids,
-      payment_method_id,
-      notes,
-      service_prices,
-      active_missions // New field for mission completion
+    const { 
+      user_id, 
+      service_ids, 
+      service_prices, 
+      payment_method_id, 
+      active_missions, 
+      notes 
     } = body
 
-    if (!user_id || !service_ids || !payment_method_id || !service_prices) {
+    if (!user_id || !service_ids || !payment_method_id) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
-    // Get customer info
-    const { data: customer, error: customerError } = await supabase
+    // Get customer data
+    const { data: customer, error: customerError } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('id', user_id)
@@ -43,8 +40,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get services info
-    const { data: services, error: servicesError } = await supabase
+    // Get services data
+    const { data: services, error: servicesError } = await supabaseAdmin
       .from('services')
       .select('*')
       .in('id', service_ids)
@@ -80,12 +77,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Apply membership multiplier
+    // Apply membership multiplier (based on current lifetime_points)
+    const currentLifetimePoints = customer.lifetime_points || customer.total_points || 0
     let membershipMultiplier = 1
-    if (customer.membership_level === 'Silver') {
-      membershipMultiplier = 1.2
-    } else if (customer.membership_level === 'Gold') {
-      membershipMultiplier = 1.5
+    if (currentLifetimePoints >= 1000) {
+      membershipMultiplier = 1.5 // Gold
+    } else if (currentLifetimePoints >= 500) {
+      membershipMultiplier = 1.2 // Silver
     }
 
     totalPointsEarned = Math.floor(totalPointsEarned * membershipMultiplier)
@@ -96,7 +94,6 @@ export async function POST(request: NextRequest) {
 
     if (active_missions && active_missions.length > 0) {
       for (const mission of active_missions) {
-        // Check if service matches mission requirement (if any)
         const missionServiceId = mission.service_id
         const serviceMatches = !missionServiceId || service_ids.includes(missionServiceId)
 
@@ -155,13 +152,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Update customer points and membership
-    const newPointsBalance = customer.total_points + finalPointsEarned
-    const newMembershipLevel = newPointsBalance >= 1000 ? 'Gold' : newPointsBalance >= 500 ? 'Silver' : 'Bronze'
+    const newAvailablePoints = customer.total_points + finalPointsEarned
+    const newLifetimePoints = (customer.lifetime_points || customer.total_points || 0) + finalPointsEarned
+    
+    // Membership level based on lifetime points
+    const newMembershipLevel = newLifetimePoints >= 1000 ? 'Gold' : 
+                              newLifetimePoints >= 500 ? 'Silver' : 'Bronze'
 
     await supabaseAdmin
       .from('users')
       .update({
-        total_points: newPointsBalance,
+        total_points: newAvailablePoints,
+        lifetime_points: newLifetimePoints,
         membership_level: newMembershipLevel,
         total_visits: customer.total_visits + 1,
         total_spent: customer.total_spent + totalAmount,
@@ -181,7 +183,7 @@ export async function POST(request: NextRequest) {
         user_id,
         transaction_id: transaction.id,
         points_change: finalPointsEarned,
-        balance_after: newPointsBalance,
+        balance_after: newAvailablePoints,
         type: 'earn',
         description
       })
@@ -190,71 +192,18 @@ export async function POST(request: NextRequest) {
       transaction,
       customer: {
         ...customer,
-        total_points: newPointsBalance,
+        total_points: newAvailablePoints,
+        lifetime_points: newLifetimePoints,
         membership_level: newMembershipLevel
       },
       missions_completed: completedMissions,
       mission_bonus_points: missionBonusPoints,
       message: completedMissions.length > 0 
-        ? `Transaction completed! Missions completed with +${missionBonusPoints} bonus points!`
-        : 'Transaction completed successfully'
+        ? `Transaction completed! Missions completed: ${completedMissions.map(m => m.title).join(', ')}`
+        : 'Transaction completed successfully!'
     })
   } catch (error) {
     console.error('Error in transaction API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
-
-// GET method remains the same as before
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const customerId = searchParams.get('user_id') || searchParams.get('customer_id')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const offset = parseInt(searchParams.get('offset') || '0')
-
-    let query = supabase
-      .from('transactions')
-      .select(`
-        *,
-        transaction_services (
-          service_id,
-          price,
-          points_earned,
-          services (
-            name,
-            category
-          )
-        ),
-        payment_methods (
-          name,
-          type
-        )
-      `)
-      .eq('status', 'completed')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
-
-    if (customerId) {
-      query = query.eq('user_id', customerId)
-    }
-
-    const { data: transactions, error } = await query
-
-    if (error) {
-      console.error('Error fetching transactions:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch transactions' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json(transactions)
-  } catch (error) {
-    console.error('Error in transactions API:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

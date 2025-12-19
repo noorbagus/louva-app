@@ -35,6 +35,7 @@ export default function CustomerHomePage() {
   const [loading, setLoading] = useState(true)
   const [currentBanner, setCurrentBanner] = useState(0)
   const [activeMissions, setActiveMissions] = useState<any[]>([])
+  const [availableMissions, setAvailableMissions] = useState<any[]>([])
   const [challenges, setChallenges] = useState<any[]>([])
   const [featuredRewards, setFeaturedRewards] = useState<any[]>([])
 
@@ -45,7 +46,9 @@ export default function CustomerHomePage() {
       const missionsResponse = await fetch(`/api/missions?user_id=${FIXED_CUSTOMER_ID}&_t=${Date.now()}`)
       if (missionsResponse.ok) {
         const missionsData = await missionsResponse.json()
-        setActiveMissions(missionsData.missions?.filter((m: any) => m.user_status === 'active') || [])
+        const missions = missionsData.missions || []
+        setActiveMissions(missions.filter((m: any) => m.user_status === 'active') || [])
+        setAvailableMissions(missions.filter((m: any) => m.user_status === 'available') || [])
       }
 
       // Load challenges (mock data for now)
@@ -134,6 +137,7 @@ export default function CustomerHomePage() {
             phone: profileData.phone || '081234567890',
             email: profileData.email || 'sari.dewi@example.com',
             total_points: newPoints,
+            lifetime_points: profileData.lifetime_points || newPoints,
             membership_level: newMembershipLevel,
             total_visits: profileData.total_visits || (pointsData as any)?.total_visits || 0,
             total_spent: profileData.total_spent || (pointsData as any)?.total_spent || 0,
@@ -153,6 +157,7 @@ export default function CustomerHomePage() {
             phone: '081234567890',
             email: 'sari.dewi@example.com',
             total_points: 0,
+            lifetime_points: 0,
             membership_level: 'Bronze',
             total_visits: 0,
             total_spent: 0,
@@ -173,6 +178,7 @@ export default function CustomerHomePage() {
           phone: '081234567890',
           email: 'sari.dewi@example.com',
           total_points: 0,
+          lifetime_points: 0,
           membership_level: 'Bronze',
           total_visits: 0,
           total_spent: 0,
@@ -302,7 +308,7 @@ export default function CustomerHomePage() {
               <div className="flex justify-between items-center">
                 <div>
                   <span className="text-2xl font-bold block mb-1">{customer.total_points.toLocaleString('id-ID')}</span>
-                  <span className="text-xs opacity-90 font-medium">points</span>
+                  <span className="text-s opacity-90 font-medium"><b>Points</b></span>
                 </div>
                 <Link href="/customer/services">
                   <button className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white px-4 py-2 rounded-full font-semibold text-xs shadow-lg">
@@ -316,9 +322,16 @@ export default function CustomerHomePage() {
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium">{customer.membership_level} Member</span>
                   <span className="text-xs opacity-90">
-                    {customer.membership_level === 'Bronze' ? `${Math.max(0, 500 - customer.total_points)} pts to Silver` :
-                     customer.membership_level === 'Silver' ? `${Math.max(0, 1000 - customer.total_points)} pts to Gold` :
-                     'Gold Status'}
+                    {(() => {
+                      const lifetimePoints = customer.lifetime_points || customer.total_points
+                      if (customer.membership_level === 'Bronze') {
+                        return `${Math.max(0, 500 - lifetimePoints)} pts to Silver`
+                      } else if (customer.membership_level === 'Silver') {
+                        return `${Math.max(0, 1000 - lifetimePoints)} pts to Gold`
+                      } else {
+                        return 'Gold Status'
+                      }
+                    })()}
                   </span>
                 </div>
                 <div className="w-full bg-white/20 rounded-full h-2">
@@ -326,11 +339,16 @@ export default function CustomerHomePage() {
                     className="h-2 rounded-full bg-gradient-to-r from-white/80 to-white/60 transition-all duration-700"
                     style={{
                       width: `${
-                        customer.membership_level === 'Bronze'
-                          ? Math.min((customer.total_points / 500) * 100, 100)
-                          : customer.membership_level === 'Silver'
-                          ? Math.min(((customer.total_points - 500) / 500) * 100, 100)
-                          : 100
+                        (() => {
+                          const lifetimePoints = customer.lifetime_points || customer.total_points
+                          if (customer.membership_level === 'Bronze') {
+                            return Math.min((lifetimePoints / 500) * 100, 100)
+                          } else if (customer.membership_level === 'Silver') {
+                            return Math.min(((lifetimePoints - 500) / 500) * 100, 100)
+                          } else {
+                            return 100
+                          }
+                        })()
                       }%`
                     }}
                   />
@@ -439,9 +457,11 @@ export default function CustomerHomePage() {
             <div className="absolute top-0 right-0 z-10 transform translate-x-1/2 -translate-y-1/2">
               <div className="relative">
                 <span className="material-icons text-red-500 text-lg animate-pulse drop-shadow-lg">notifications</span>
-                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  2
-                </div>
+                {availableMissions.length > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {availableMissions.length}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -458,7 +478,7 @@ export default function CustomerHomePage() {
                     Complete 3 services & win 150 points before Monday!
                   </p>
                   <div className="text-sm font-medium text-purple-400">
-                    🏆 2 missions active
+                    🏆 {activeMissions.length} active, {availableMissions.length} available
                   </div>
                 </div>
               </div>

@@ -13,6 +13,7 @@ export interface Customer {
   full_name?: string
   profile_url?: string
   total_points: number
+  lifetime_points?: number  // Added for lifetime points tracking
   membership_level: MembershipLevel
   total_visits?: number
   total_spent?: number
@@ -44,14 +45,6 @@ export interface Service {
   is_active: boolean
   created_at: string
   updated_at: string
-}
-
-export interface SelectedService {
-  id: string
-  name: string
-  price: number
-  points: number
-  isMissionService?: boolean
 }
 
 export interface Transaction {
@@ -140,7 +133,44 @@ export interface PaymentMethodConfig {
   name: string
   type: 'cash' | 'qris' | 'debit' | 'credit' | 'transfer'
   bank?: string
-  fee?: number
+  icon: string
   is_active: boolean
-  icon?: string 
+  created_at: string
+}
+
+export interface SelectedService {
+  id: string
+  name: string
+  price: number
+  points: number
+  isMissionService?: boolean
+}
+
+export interface TransactionFormData {
+  customerId: string
+  services: SelectedService[]
+  paymentMethodId: string
+  notes?: string
+}
+
+export interface NotificationData {
+  id: string
+  title: string
+  content: string
+  targetAudience: 'all' | 'silver' | 'gold' | 'inactive'
+  sentAt: string
+  deliveredCount: number
+}
+
+export interface CustomerAnalytics {
+  totalCustomers: number
+  activeCustomers: number
+  newCustomers: number
+  retentionRate: number
+  averageSpend: number
+  membershipDistribution: {
+    gold: { count: number; percentage: number }
+    silver: { count: number; percentage: number }
+    bronze: { count: number; percentage: number }
+  }
 }

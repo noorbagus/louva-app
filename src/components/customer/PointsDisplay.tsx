@@ -11,8 +11,9 @@ interface PointsDisplayProps {
 }
 
 export function PointsDisplay({ customer, className }: PointsDisplayProps) {
-  const membership = getMembershipLevel(customer.total_points)
-  const pointsToNext = getPointsToNextLevel(customer.total_points)
+  const lifetimePoints = customer.lifetime_points || customer.total_points
+  const membership = getMembershipLevel(lifetimePoints)
+  const pointsToNext = getPointsToNextLevel(lifetimePoints)
   const currentLevelConfig = MEMBERSHIP_LEVELS[membership.level.toUpperCase() as keyof typeof MEMBERSHIP_LEVELS]
 
   return (
@@ -21,11 +22,19 @@ export function PointsDisplay({ customer, className }: PointsDisplayProps) {
       <Card variant="glass" className="mb-4 bg-gradient-to-br from-primary-500/10 to-primary-600/15 border-primary-500/20">
         <CardContent className="text-center py-6">
           <div className="mb-2">
-            <span className="text-dark-400 text-sm font-medium">Total Poin</span>
+            <span className="text-dark-400 text-sm font-medium">Available Points</span>
           </div>
           <div className={`text-4xl font-bold mb-3 ${membership.textColor}`}>
             {customer.total_points.toLocaleString('id-ID')}
           </div>
+          
+          {/* Show lifetime points if different from available */}
+          {lifetimePoints !== customer.total_points && (
+            <div className="mb-3">
+              <span className="text-dark-500 text-sm">Lifetime: {lifetimePoints.toLocaleString('id-ID')} pts</span>
+            </div>
+          )}
+          
           <Badge
             variant="secondary"
             className={`${membership.bgColor} ${membership.color} border-0`}
@@ -47,6 +56,13 @@ export function PointsDisplay({ customer, className }: PointsDisplayProps) {
               </li>
             ))}
           </ul>
+          
+          {/* Membership note */}
+          <div className="mt-3 pt-3 border-t border-dark-600">
+            <p className="text-xs text-dark-400">
+              Status berdasarkan lifetime points ({lifetimePoints.toLocaleString('id-ID')})
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -56,35 +72,29 @@ export function PointsDisplay({ customer, className }: PointsDisplayProps) {
           <CardContent className="p-4">
             <div className="flex justify-between items-center mb-3">
               <span className="text-dark-300 text-sm font-medium">
-                {membership.level === 'Bronze' ? 'Ke Silver' : 'Ke Gold'}
+                {membership.level === 'Bronze' ? 'Progress to Silver' : 'Progress to Gold'}
               </span>
-              <span className="text-dark-100 text-sm font-semibold">
-                {pointsToNext.toLocaleString('id-ID')} poin lagi
+              <span className="text-dark-400 text-xs">
+                {pointsToNext} lifetime pts needed
               </span>
             </div>
-            <div className="w-full bg-dark-700 rounded-full h-2.5">
+            
+            <div className="w-full bg-dark-700 rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-primary-500 to-primary-400 h-2.5 rounded-full transition-all duration-700"
+                className="h-2 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-300"
                 style={{
-                  width: `${Math.min(((customer.total_points - (membership.level === 'Silver' ? 500 : 0)) / pointsToNext) * 100, 100)}%`
+                  width: `${Math.min(
+                    membership.level === 'Bronze'
+                      ? (lifetimePoints / 500) * 100
+                      : ((lifetimePoints - 500) / 500) * 100,
+                    100
+                  )}%`
                 }}
               />
             </div>
           </CardContent>
         </Card>
       )}
-
-      {/* Points Value */}
-      <Card variant="glass" className="bg-[#243442]/50 border-dark-600/30">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center">
-            <span className="text-dark-400 text-sm font-medium">Nilai Poin</span>
-            <span className="text-dark-100 font-semibold">
-              {formatCurrency(customer.total_points)}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

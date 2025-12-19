@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/shared/Button'
 import { Card } from '@/components/shared/Card'
+import { RewardAnalytics } from '@/components/admin/RewardAnalytics'
 
 interface ReportData {
   totalRevenue: number
@@ -15,6 +16,7 @@ export default function AdminReportsPage() {
   const [period, setPeriod] = useState('today')
   const [loading, setLoading] = useState(true)
   const [reportData, setReportData] = useState<ReportData | null>(null)
+  const [activeTab, setActiveTab] = useState<'revenue' | 'customers' | 'services' | 'rewards'>('rewards')
 
   useEffect(() => {
     fetchReportData()
@@ -83,6 +85,29 @@ export default function AdminReportsPage() {
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">Reports & Analytics</h1>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="flex gap-2 mb-4 border-b border-[var(--border)]">
+        {[
+          { id: 'revenue', label: 'Revenue', icon: 'trending_up' },
+          { id: 'customers', label: 'Customers', icon: 'people' },
+          { id: 'services', label: 'Services', icon: 'content_cut' },
+          { id: 'rewards', label: 'Rewards', icon: 'redeem' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-3 flex items-center gap-2 font-medium transition-all border-b-2 ${
+              activeTab === tab.id
+                ? 'text-[var(--primary)] border-[var(--primary)]'
+                : 'text-[var(--text-muted)] border-transparent hover:text-[var(--text-secondary)]'
+            }`}
+          >
+            <span className="material-icons text-lg">{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Period Selector */}
       <div className="flex gap-2 mb-6">
         {['today', 'week', 'month', 'year'].map((p) => (
@@ -97,9 +122,14 @@ export default function AdminReportsPage() {
         ))}
       </div>
 
-      {/* Key Metrics */}
-      <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Revenue Overview</h2>
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      {/* Tab Content */}
+      {activeTab === 'rewards' ? (
+        <RewardAnalytics />
+      ) : (
+        <>
+          {/* Key Metrics */}
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Revenue Overview</h2>
+          <div className="grid grid-cols-2 gap-3 mb-6">
         <Card className="p-5 bg-[var(--surface-light)] border-[var(--border)]">
           <div className="flex items-center gap-3 mb-3">
             <span className="material-icons text-[var(--success)]">trending_up</span>
@@ -190,6 +220,8 @@ export default function AdminReportsPage() {
           <span>Export Excel</span>
         </Button>
       </div>
+        </>
+      )}
     </div>
   )
 }

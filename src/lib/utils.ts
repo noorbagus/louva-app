@@ -29,20 +29,20 @@ export function calculatePoints(amount: number, rate: number = 1000): number {
   return Math.floor(amount / rate)
 }
 
-export function getMembershipLevel(totalPoints: number): {
+export function getMembershipLevel(lifetimePoints: number): {
   level: 'Bronze' | 'Silver' | 'Gold'
   color: string
   bgColor: string
   textColor: string
 } {
-  if (totalPoints >= 1000) {
+  if (lifetimePoints >= 1000) {
     return {
       level: 'Gold',
       color: 'text-yellow-400',
       bgColor: 'bg-yellow-400/20',
       textColor: 'text-yellow-400'
     }
-  } else if (totalPoints >= 500) {
+  } else if (lifetimePoints >= 500) {
     return {
       level: 'Silver',
       color: 'text-gray-300',
@@ -59,10 +59,10 @@ export function getMembershipLevel(totalPoints: number): {
   }
 }
 
-export function getPointsToNextLevel(currentPoints: number): number {
-  if (currentPoints >= 1000) return 0 // Gold is max level
-  if (currentPoints >= 500) return 1000 - currentPoints // To Gold
-  return 500 - currentPoints // To Silver
+export function getPointsToNextLevel(lifetimePoints: number): number {
+  if (lifetimePoints >= 1000) return 0 // Gold is max level
+  if (lifetimePoints >= 500) return 1000 - lifetimePoints // To Gold
+  return 500 - lifetimePoints // To Silver
 }
 
 export function generateQRData(customerId: string): string {

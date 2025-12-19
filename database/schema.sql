@@ -12,6 +12,7 @@ CREATE TABLE users (
   phone VARCHAR,
   membership_level VARCHAR DEFAULT 'Bronze',
   total_points INTEGER DEFAULT 0,
+  lifetime_points INTEGER DEFAULT 0,
   total_visits INTEGER DEFAULT 0,
   total_spent DECIMAL(12,2) DEFAULT 0,
   qr_code VARCHAR UNIQUE,
@@ -108,8 +109,8 @@ CREATE TABLE reward_redemptions (
 );
 
 -- Insert fixed customer account
-INSERT INTO users (id, email, full_name, phone, membership_level, total_points, total_visits, total_spent, qr_code) VALUES
-('550e8400-e29b-41d4-a716-446655440001', 'sari.dewi@example.com', 'Sari Dewi', '081234567890', 'Silver', 750, 15, 3200000, 'LOUVA_SD001_2024');
+INSERT INTO users (id, email, full_name, phone, membership_level, total_points, lifetime_points, total_visits, total_spent, qr_code) VALUES
+('550e8400-e29b-41d4-a716-446655440001', 'sari.dewi@example.com', 'Sari Dewi', '081234567890', 'Silver', 750, 850, 15, 3200000, 'LOUVA_SD001_2024');
 
 -- Insert fixed admin account
 INSERT INTO admins (id, email, full_name, role) VALUES
@@ -180,14 +181,24 @@ CREATE POLICY "Allow all operations on reward_redemptions" ON reward_redemptions
 CREATE OR REPLACE FUNCTION update_user_points()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Update user's total points
-  UPDATE users 
+  -- Update user's total points and lifetime points
+  UPDATE users
   SET total_points = total_points + NEW.points_earned,
+      lifetime_points = lifetime_points + NEW.points_earned,
       total_visits = total_visits + 1,
       total_spent = total_spent + NEW.total_amount,
       updated_at = NOW()
   WHERE id = NEW.user_id;
-  
+
+  -- Update membership level based on lifetime points
+  UPDATE users
+  SET membership_level = CASE
+    WHEN lifetime_points >= 1000 THEN 'Gold'
+    WHEN lifetime_points >= 500 THEN 'Silver'
+    ELSE 'Bronze'
+  END
+  WHERE id = NEW.user_id;
+
   -- Insert into points history
   INSERT INTO points_history (user_id, transaction_id, points_change, balance_after, type, description)
   VALUES (
@@ -198,7 +209,7 @@ BEGIN
     'earn',
     'Points earned from transaction'
   );
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -207,3 +218,7 @@ CREATE TRIGGER trigger_update_user_points
   AFTER INSERT ON transactions
   FOR EACH ROW
   EXECUTE FUNCTION update_user_points();
+
+-- For existing databases, add lifetime_points column with migration:
+-- ALTER TABLE users ADD COLUMN lifetime_points INTEGER DEFAULT 0;
+-- UPDATE users SET lifetime_points = total_points WHERE lifetime_points = 0;

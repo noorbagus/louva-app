@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/shared/Card'
 import { Button } from '@/components/shared/Button'
 import { Badge } from '@/components/shared/Badge'
+import { getMembershipLevel } from '@/lib/utils'
 import type { Customer } from '@/lib/types'
+import Link from 'next/link'
 
 const FIXED_CUSTOMER_ID = '550e8400-e29b-41d4-a716-446655440001'
 
@@ -20,7 +22,6 @@ export default function CustomerAccountPage() {
   const fetchCustomerData = async () => {
     try {
       setIsLoading(true)
-      // Fetch customer profile and points
       const profileResponse = await fetch(`/api/user/profile?id=${FIXED_CUSTOMER_ID}`)
       const pointsResponse = await fetch(`/api/user/points?userId=${FIXED_CUSTOMER_ID}`)
 
@@ -30,9 +31,11 @@ export default function CustomerAccountPage() {
 
         setPointsData(pointsData)
 
-        const newPoints = profileData.total_points || pointsData.current_points || 0
-        // Calculate membership level based on current points
-        const calculatedMembershipLevel = newPoints >= 1000 ? 'Gold' : newPoints >= 500 ? 'Silver' : 'Bronze'
+        const availablePoints = profileData.total_points || pointsData.current_points || 0
+        const lifetimePoints = profileData.lifetime_points || availablePoints
+        
+        // Membership level based on lifetime points
+        const calculatedMembershipLevel = lifetimePoints >= 1000 ? 'Gold' : lifetimePoints >= 500 ? 'Silver' : 'Bronze'
 
         setCustomer({
           id: FIXED_CUSTOMER_ID,
@@ -40,8 +43,9 @@ export default function CustomerAccountPage() {
           name: profileData.full_name || 'Sari Dewi',
           phone: profileData.phone || '+628123456789',
           email: profileData.email || 'sari.dewi@example.com',
-          total_points: newPoints,
-          membership_level: calculatedMembershipLevel, // Use calculated level
+          total_points: availablePoints,
+          lifetime_points: lifetimePoints,
+          membership_level: calculatedMembershipLevel,
           total_visits: profileData.total_visits || 0,
           total_spent: profileData.total_spent || 0,
           created_at: profileData.created_at || new Date().toISOString(),
@@ -50,7 +54,6 @@ export default function CustomerAccountPage() {
       }
     } catch (error) {
       console.error('Error fetching customer data:', error)
-      // Set fallback data
       setCustomer({
         id: FIXED_CUSTOMER_ID,
         customer_id: FIXED_CUSTOMER_ID,
@@ -58,6 +61,7 @@ export default function CustomerAccountPage() {
         phone: '+628123456789',
         email: 'sari.dewi@example.com',
         total_points: 0,
+        lifetime_points: 0,
         membership_level: 'Bronze',
         total_visits: 0,
         total_spent: 0,
@@ -68,6 +72,9 @@ export default function CustomerAccountPage() {
       setIsLoading(false)
     }
   }
+
+  const lifetimePoints = customer?.lifetime_points || customer?.total_points || 0
+  const membership = customer ? getMembershipLevel(lifetimePoints) : null
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
@@ -135,6 +142,18 @@ export default function CustomerAccountPage() {
               </div>
               <h3 className="text-lg font-semibold mb-1 text-[var(--text-primary)]">{customer.name}</h3>
               <p className="text-[var(--text-secondary)] text-sm">View and edit profile</p>
+              
+              {/* Membership Status with lifetime info */}
+              {membership && (
+                <div className="mt-3">
+                  <Badge className={`${membership.bgColor} ${membership.color} border-0`}>
+                    {membership.level} Member
+                  </Badge>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                    Based on {lifetimePoints.toLocaleString('id-ID')} lifetime points
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Statistics */}
@@ -146,82 +165,81 @@ export default function CustomerAccountPage() {
                   <div className="text-xs text-[var(--text-muted)] mt-1">Total Visits</div>
                 </div>
                 <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
-                <div className="text-lg font-bold text-[var(--primary)]">
-                  {((customer.total_spent || 0) / 1000).toLocaleString('id-ID')} K
-                </div>
+                  <div className="text-lg font-bold text-[var(--primary)]">
+                    {((customer.total_spent || 0) / 1000).toLocaleString('id-ID')} K
+                  </div>
                   <div className="text-xs text-[var(--text-muted)] mt-1">Total Spent (Rp)</div>
                 </div>
                 <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
                   <div className="text-lg font-bold text-[var(--primary)]">{customer.total_points?.toLocaleString('id-ID') || 0}</div>
-                  <div className="text-xs text-[var(--text-muted)] mt-1">Points</div>
+                  <div className="text-xs text-[var(--text-muted)] mt-1">Available Points</div>
                 </div>
+              </div>
+
+              {/* Lifetime Points Display */}
+              <div className="mt-3 bg-[var(--surface-light)] border border-[var(--border)] rounded-xl p-4 text-center">
+                <div className="text-lg font-bold text-[var(--accent)]">{lifetimePoints.toLocaleString('id-ID')}</div>
+                <div className="text-xs text-[var(--text-muted)] mt-1">Lifetime Points Earned</div>
+                <p className="text-xs text-[var(--text-secondary)] mt-2">
+                  {membership?.level === 'Gold' ? '1.5x' : membership?.level === 'Silver' ? '1.2x' : '1x'} points multiplier
+                </p>
               </div>
             </div>
 
             {/* Menu List */}
             <div className="bg-[var(--surface-light)] border border-[var(--border)] rounded-xl overflow-hidden">
-              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-                  <i className="material-icons text-lg">receipt_long</i>
-                </div>
-                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Transaction History</div>
-                <div className="text-[var(--text-muted)]">›</div>
+              <Link href="/customer/rewards/history" className="flex items-center p-4 border-b border-[var(--border)] hover:bg-[var(--surface)] transition-colors">
+                <i className="material-icons text-[var(--primary)] mr-4">history</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">Redemption History</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
+              </Link>
+
+              <Link href="/customer/rewards" className="flex items-center p-4 border-b border-[var(--border)] hover:bg-[var(--surface)] transition-colors">
+                <i className="material-icons text-[var(--primary)] mr-4">redeem</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">Browse Rewards</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
+              </Link>
+
+              <div className="flex items-center p-4 border-b border-[var(--border)]">
+                <i className="material-icons text-[var(--primary)] mr-4">flag</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">My Missions</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
               </div>
 
-              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-                  <i className="material-icons text-lg">redeem</i>
-                </div>
-                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">My Redemptions</div>
-                <div className="text-[var(--text-muted)]">›</div>
+              <div className="flex items-center p-4 border-b border-[var(--border)]">
+                <i className="material-icons text-[var(--primary)] mr-4">history</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">Transaction History</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
               </div>
 
-              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-                  <i className="material-icons text-lg">emoji_events</i>
-                </div>
-                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Achievements</div>
-                <div className="text-[var(--text-muted)]">›</div>
+              <div className="flex items-center p-4 border-b border-[var(--border)]">
+                <i className="material-icons text-[var(--primary)] mr-4">card_giftcard</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">Gift Cards</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
               </div>
 
-              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-                  <i className="material-icons text-lg">location_on</i>
-                </div>
-                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Salon Locations</div>
-                <div className="text-[var(--text-muted)]">›</div>
+              <div className="flex items-center p-4 border-b border-[var(--border)]">
+                <i className="material-icons text-[var(--primary)] mr-4">people</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">Refer Friends</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
               </div>
 
-              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-                  <i className="material-icons text-lg">schedule</i>
-                </div>
-                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Points Expiry</div>
-                <div className="text-[var(--text-muted)]">›</div>
+              <div className="flex items-center p-4 border-b border-[var(--border)]">
+                <i className="material-icons text-[var(--primary)] mr-4">notifications</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">Notifications</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
               </div>
 
-              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-                  <i className="material-icons text-lg">notifications</i>
-                </div>
-                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Notifications</div>
-                <div className="text-[var(--text-muted)]">›</div>
+              <div className="flex items-center p-4 border-b border-[var(--border)]">
+                <i className="material-icons text-[var(--primary)] mr-4">help</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">Help & Support</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
               </div>
 
-              <div className="flex items-center p-4 border-b border-[var(--border)] cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-                  <i className="material-icons text-lg">help</i>
-                </div>
-                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Help & Support</div>
-                <div className="text-[var(--text-muted)]">›</div>
-              </div>
-
-              <div className="flex items-center p-4 cursor-pointer transition-all duration-200 hover:bg-[rgba(74,139,194,0.1)]">
-                <div className="w-6 h-6 mr-4 text-[var(--primary)] flex items-center justify-center">
-                  <i className="material-icons text-lg">settings</i>
-                </div>
-                <div className="flex-1 text-[var(--text-primary)] text-sm font-medium">Settings</div>
-                <div className="text-[var(--text-muted)]">›</div>
+              <div className="flex items-center p-4">
+                <i className="material-icons text-[var(--primary)] mr-4">info</i>
+                <span className="flex-1 text-[var(--text-primary)] font-medium">About Louva</span>
+                <i className="material-icons text-[var(--text-muted)]">chevron_right</i>
               </div>
             </div>
           </>

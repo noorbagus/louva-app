@@ -18,6 +18,8 @@ export function TransactionForm({ customer }: TransactionFormProps) {
   const [notes, setNotes] = useState('')
   const [processing, setProcessing] = useState(false)
   const [activeMissions, setActiveMissions] = useState<any[]>([])
+  const [activeRewards, setActiveRewards] = useState<any[]>([])
+  const [appliedRewards, setAppliedRewards] = useState<any[]>([])
 
   // Debug logging
   console.log('🔍 TransactionForm render:', {
@@ -36,6 +38,35 @@ export function TransactionForm({ customer }: TransactionFormProps) {
       sessionStorage.removeItem('scanned_missions')
     }
   }, [])
+
+  // Load customer's active rewards
+  useEffect(() => {
+    if (customer?.id) {
+      fetchCustomerRewards()
+    }
+  }, [customer])
+
+  const fetchCustomerRewards = async () => {
+    try {
+      const response = await fetch(`/api/scan/customer-rewards?customerId=${customer.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setActiveRewards(data.activeRewards || [])
+      }
+    } catch (error) {
+      console.error('Error fetching customer rewards:', error)
+    }
+  }
+
+  const handleApplyReward = (reward: any) => {
+    if (!appliedRewards.find(r => r.redemption_id === reward.redemption_id)) {
+      setAppliedRewards([...appliedRewards, reward])
+    }
+  }
+
+  const handleRemoveReward = (redemptionId: string) => {
+    setAppliedRewards(appliedRewards.filter(r => r.redemption_id !== redemptionId))
+  }
 
   const handleServiceToggle = (service: SelectedService) => {
     console.log('🔍 handleServiceToggle called with:', service)
@@ -107,6 +138,7 @@ export function TransactionForm({ customer }: TransactionFormProps) {
           payment_method_id: selectedPaymentMethod,
           service_prices: selectedServices.map(s => s.price),
           active_missions: activeMissions,
+          applied_rewards: appliedRewards, // Send applied rewards
           notes: notes || ''
         })
       })
@@ -115,12 +147,24 @@ export function TransactionForm({ customer }: TransactionFormProps) {
 
       if (data.transaction) {
         clearCustomerCache()
-        
-        let message = `Transaction completed successfully! Customer earned ${data.customer.total_points.toLocaleString()} total points.`
+
+        let message = `Transaction completed successfully!`
+
+        if (appliedRewards.length > 0) {
+          message += ` Used ${appliedRewards.length} reward(s). `
+          if (data.customer.total_points > 0) {
+            message += `Customer earned ${data.customer.total_points.toLocaleString()} total points.`
+          } else {
+            message += `No points earned (reward applied).`
+          }
+        } else {
+          message += ` Customer earned ${data.customer.total_points.toLocaleString()} total points.`
+        }
+
         if (data.mission_bonus_points > 0) {
           message += ` Bonus from missions: +${data.mission_bonus_points} points!`
         }
-        
+
         alert(message)
         window.location.href = '/admin'
       } else {
@@ -156,6 +200,47 @@ export function TransactionForm({ customer }: TransactionFormProps) {
         </Card>
       )}
 
+      {activeRewards.length > 0 && (
+        <Card className="bg-purple-500/10 border-purple-500/30 p-4">
+          <h3 className="text-purple-400 font-semibold mb-2">Customer's Active Rewards ({activeRewards.length})</h3>
+          <div className="space-y-2">
+            {activeRewards.map((reward) => {
+              const isApplied = appliedRewards.find(r => r.redemption_id === reward.redemption_id)
+              return (
+                <div key={reward.redemption_id} className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm text-purple-300 font-medium">{reward.reward_name}</p>
+                    <p className="text-xs text-purple-200/70">Redeemed with {reward.points_used} points</p>
+                  </div>
+                  {!isApplied ? (
+                    <button
+                      onClick={() => handleApplyReward(reward)}
+                      className="px-3 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Apply
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleRemoveReward(reward.redemption_id)}
+                      className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          {appliedRewards.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-purple-500/20">
+              <p className="text-xs text-purple-300">
+                ⚠️ Applied rewards: {appliedRewards.length} - No points will be earned for free services
+              </p>
+            </div>
+          )}
+        </Card>
+      )}
+
       <ServiceSelector
         selectedServices={selectedServices}
         onServiceToggle={handleServiceToggle}
@@ -172,7 +257,10 @@ export function TransactionForm({ customer }: TransactionFormProps) {
           Payment Notes (Optional)
         </label>
         <textarea
-          value={notes}
+          value={notes || (appliedRewards.length > 0
+            ? `Applied rewards: ${appliedRewards.map(r => r.reward_name).join(', ')}`
+            : ''
+          )}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Add any notes about this transaction..."
           className="w-full p-4 bg-[var(--surface)] border border-[var(--border)] rounded-2xl text-[var(--text-primary)] placeholder-[var(--text-muted)] resize-none min-h-[100px] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
@@ -186,11 +274,18 @@ export function TransactionForm({ customer }: TransactionFormProps) {
               <span>Subtotal:</span>
               <span className="font-medium">Rp {totalAmount.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-[var(--success)]">
-              <span>Service points:</span>
-              <span className="font-semibold">+{totalPoints} pts</span>
-            </div>
-            {missionBonus > 0 && (
+            {appliedRewards.length > 0 ? (
+              <div className="flex justify-between text-purple-400">
+                <span>Reward Applied:</span>
+                <span className="font-semibold">-{totalPoints} pts (no earnings)</span>
+              </div>
+            ) : (
+              <div className="flex justify-between text-[var(--success)]">
+                <span>Service points:</span>
+                <span className="font-semibold">+{totalPoints} pts</span>
+              </div>
+            )}
+            {missionBonus > 0 && appliedRewards.length === 0 && (
               <div className="flex justify-between text-green-400">
                 <span>Mission bonus:</span>
                 <span className="font-semibold">+{missionBonus} pts</span>
@@ -203,7 +298,7 @@ export function TransactionForm({ customer }: TransactionFormProps) {
             </div>
             <div className="flex justify-between text-lg font-bold text-[var(--success)]">
               <span>Total Points:</span>
-              <span>+{finalPoints} pts</span>
+              <span>{appliedRewards.length > 0 ? '0' : `+${finalPoints}`} pts</span>
             </div>
           </div>
         </Card>
