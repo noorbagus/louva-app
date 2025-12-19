@@ -19,8 +19,7 @@ export default function ServicesPage() {
     category: 'Hair',
     description: '',
     minPrice: '',
-    maxPrice: '',
-    pointsMultiplier: '1.0'
+    maxPrice: ''
   })
 
   useEffect(() => {
@@ -43,7 +42,7 @@ export default function ServicesPage() {
         name: service.name,
         category: service.category as any,
         price: service.min_price,
-        point_multiplier: service.points_multiplier,
+        point_multiplier: 1, // Default to 1 since multiplier is now membership-based
         description: service.description || '',
         is_active: service.is_active,
         created_at: service.created_at,
@@ -68,7 +67,7 @@ export default function ServicesPage() {
         description: formData.description || null,
         min_price: parseFloat(formData.minPrice),
         max_price: formData.maxPrice ? parseFloat(formData.maxPrice) : null,
-        points_multiplier: parseFloat(formData.pointsMultiplier)
+        points_multiplier: 1 // Default multiplier, since it's membership-based
       }
 
       if (editingService) {
@@ -95,8 +94,7 @@ export default function ServicesPage() {
         description: '',
         minPrice: '',
         maxPrice: '',
-        pointsMultiplier: '1.0'
-      })
+              })
       setShowAddModal(false)
       setEditingService(null)
       fetchServices()
@@ -113,8 +111,7 @@ export default function ServicesPage() {
       description: service.description,
       minPrice: service.price.toString(),
       maxPrice: '',
-      pointsMultiplier: service.point_multiplier.toString()
-    })
+          })
     setEditingService(service)
     setShowAddModal(true)
   }
@@ -239,8 +236,7 @@ export default function ServicesPage() {
             description: '',
             minPrice: '',
             maxPrice: '',
-            pointsMultiplier: '1.0'
-          })
+                      })
         }}
         title={editingService ? 'Edit Service' : 'Add New Service'}
       >
@@ -288,22 +284,7 @@ export default function ServicesPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              Points Multiplier
-            </label>
-            <select
-              value={formData.pointsMultiplier}
-              onChange={(e) => setFormData({ ...formData, pointsMultiplier: e.target.value })}
-              className="w-full p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-            >
-              <option value="1">1x (Standard)</option>
-              <option value="1.2">1.2x (Silver)</option>
-              <option value="1.5">1.5x (Gold)</option>
-              <option value="2">2x (VIP)</option>
-            </select>
-          </div>
-
+          
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
               Description (Optional)

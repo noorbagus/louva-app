@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       const servicePrice = service_prices[i] || service.min_price
 
       if (service) {
-        const pointsEarned = Math.floor(servicePrice / 1000 * service.points_multiplier)
+        const pointsEarned = Math.floor(servicePrice / 1000)
 
         transactionServices.push({
           service_id: serviceId,
@@ -77,13 +77,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Apply membership multiplier (based on current lifetime_points)
-    const currentLifetimePoints = customer.lifetime_points || customer.total_points || 0
+    // Apply membership multiplier from configuration
     let membershipMultiplier = 1
-    if (currentLifetimePoints >= 1000) {
-      membershipMultiplier = 1.5 // Gold
-    } else if (currentLifetimePoints >= 500) {
-      membershipMultiplier = 1.2 // Silver
+
+    try {
+      // Fetch membership configuration
+      const membershipResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/admin/membership`)
+      if (membershipResponse.ok) {
+        const membershipData = await membershipResponse.json()
+        if (membershipData.success) {
+          const currentLifetimePoints = customer.lifetime_points || customer.total_points || 0
+
+          // Find matching membership level
+          const matchingLevel = membershipData.data.rules.find(rule => {
+            const minPoints = rule.min_points
+            const maxPoints = rule.max_points
+            return currentLifetimePoints >= minPoints && (maxPoints === null || currentLifetimePoints <= maxPoints)
+          })
+
+          if (matchingLevel) {
+            membershipMultiplier = matchingLevel.multiplier
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching membership configuration:', error)
+      // Default to 1.0 if configuration fetch fails
+      membershipMultiplier = 1
     }
 
     totalPointsEarned = Math.floor(totalPointsEarned * membershipMultiplier)

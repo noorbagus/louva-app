@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card } from '@/components/shared/Card'
 import { Button } from '@/components/shared/Button'
 import { Input } from '@/components/shared/Input'
+import { Badge } from '@/components/shared/Badge'
 
 interface MembershipRule {
   id: string
@@ -22,7 +23,7 @@ interface MembershipConfigProps {
 export function MembershipConfig({ onConfigChange }: MembershipConfigProps) {
   const [rules, setRules] = useState<MembershipRule[]>([])
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
+  const [editingCard, setEditingCard] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -71,20 +72,19 @@ export function MembershipConfig({ onConfigChange }: MembershipConfigProps) {
     setRules(updatedRules)
   }
 
-  const handleSave = async () => {
+  const handleSaveCard = async (index: number) => {
     try {
       setSaving(true)
+      const rule = rules[index]
 
-      // Validate rules before saving
-      for (const rule of rules) {
-        if (rule.multiplier < 0.1 || rule.multiplier > 5.0) {
-          alert(`Invalid multiplier for ${rule.name}: must be between 0.1 and 5.0`)
-          return
-        }
-        if (rule.min_points < 0) {
-          alert(`Invalid minimum points for ${rule.name}: must be non-negative`)
-          return
-        }
+      // Validate rule
+      if (rule.multiplier < 0.1 || rule.multiplier > 5.0) {
+        alert(`Invalid multiplier for ${rule.name}: must be between 0.1 and 5.0`)
+        return
+      }
+      if (rule.min_points < 0) {
+        alert(`Invalid minimum points for ${rule.name}: must be non-negative`)
+        return
       }
 
       const response = await fetch('/api/admin/membership', {
@@ -98,239 +98,244 @@ export function MembershipConfig({ onConfigChange }: MembershipConfigProps) {
       const data = await response.json()
 
       if (data.success) {
-        alert('Membership rules updated successfully!')
-        setEditing(false)
+        alert(`${rule.name} level updated successfully!`)
+        setEditingCard(null)
         onConfigChange?.(rules)
       } else {
-        alert(`Failed to update membership rules: ${data.error}`)
+        alert(`Failed to update ${rule.name}: ${data.error}`)
       }
     } catch (error) {
-      console.error('Error saving membership rules:', error)
-      alert('Failed to update membership rules. Please try again.')
+      console.error('Error saving membership rule:', error)
+      alert('Failed to update membership rule. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
-  const handleCancel = () => {
-    setEditing(false)
+  const handleCancelEdit = () => {
+    setEditingCard(null)
     fetchMembershipRules() // Reset to original values
   }
 
   if (loading) {
     return (
-      <Card className="bg-[var(--surface-light)] border-[var(--border)] p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-white/20 rounded w-32"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white/10 rounded-lg p-4 space-y-2">
-                <div className="h-4 bg-white/20 rounded w-24"></div>
-                <div className="h-3 bg-white/20 rounded w-16"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Card>
-    )
-  }
-
-  return (
-    <Card className="bg-[var(--surface-light)] border-[var(--border)] p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-[var(--text-primary)]">Membership Levels</h3>
-        {!editing && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setEditing(true)}
-          >
-            <span className="material-icons mr-2">edit</span>
-            Edit
-          </Button>
-        )}
-      </div>
-
       <div className="space-y-4">
-        {rules.map((rule, index) => (
-          <div
-            key={rule.id}
-            className="border border-[var(--border)] rounded-lg p-4 bg-[var(--surface)]"
-            style={{ borderLeftColor: rule.color, borderLeftWidth: '4px' }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: rule.color }}
-              ></div>
-              {editing ? (
-                <Input
-                  value={rule.name}
-                  onChange={(e) => handleRuleChange(index, 'name', e.target.value)}
-                  className="flex-1"
-                />
-              ) : (
-                <h4 className="text-lg font-medium text-[var(--text-primary)]">
-                  {rule.name}
-                </h4>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="text-sm text-[var(--text-muted)] block mb-1">
-                  Minimum Points
-                </label>
-                {editing ? (
-                  <Input
-                    type="number"
-                    value={rule.min_points}
-                    onChange={(e) => handleRuleChange(index, 'min_points', parseInt(e.target.value) || 0)}
-                  />
-                ) : (
-                  <div className="text-[var(--text-primary)]">{rule.min_points.toLocaleString()}</div>
-                )}
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Membership Configuration</h2>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="animate-pulse">
+            <div className="rounded-xl border border-[var(--border)] p-4 bg-[var(--surface-light)]">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-4 h-4 rounded-full bg-white/20"></div>
+                <div className="h-5 bg-white/20 rounded w-24"></div>
               </div>
-
-              <div>
-                <label className="text-sm text-[var(--text-muted)] block mb-1">
-                  Maximum Points
-                </label>
-                {editing ? (
-                  <Input
-                    type="text"
-                    value={rule.max_points === null ? '∞' : rule.max_points}
-                    onChange={(e) => {
-                      const value = e.target.value
-                      if (value === '∞') {
-                        handleRuleChange(index, 'max_points', null)
-                      } else {
-                        handleRuleChange(index, 'max_points', parseInt(value) || null)
-                      }
-                    }}
-                  />
-                ) : (
-                  <div className="text-[var(--text-primary)]">
-                    {rule.max_points === null ? '∞' : rule.max_points.toLocaleString()}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-sm text-[var(--text-muted)] block mb-1">
-                  Points Multiplier
-                </label>
-                {editing ? (
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    max="5.0"
-                    value={rule.multiplier}
-                    onChange={(e) => handleRuleChange(index, 'multiplier', parseFloat(e.target.value) || 1.0)}
-                  />
-                ) : (
-                  <div className="text-[var(--text-primary)]">{rule.multiplier}x</div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-sm text-[var(--text-muted)] block mb-1">
-                  Level Color
-                </label>
-                {editing ? (
-                  <Input
-                    type="color"
-                    value={rule.color}
-                    onChange={(e) => handleRuleChange(index, 'color', e.target.value)}
-                  />
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-6 h-6 rounded border border-[var(--border)]"
-                      style={{ backgroundColor: rule.color }}
-                    ></div>
-                    <span className="text-[var(--text-primary)] text-sm">{rule.color}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm text-[var(--text-muted)] block mb-2">
-                Benefits
-              </label>
-              <div className="space-y-2">
-                {rule.benefits.map((benefit, benefitIndex) => (
-                  <div key={benefitIndex} className="flex items-center gap-2">
-                    <span className="material-icons text-[var(--accent)] text-sm">check_circle</span>
-                    {editing ? (
-                      <Input
-                        value={benefit}
-                        onChange={(e) => handleBenefitChange(index, benefitIndex, e.target.value)}
-                        className="flex-1"
-                      />
-                    ) : (
-                      <span className="text-[var(--text-primary)] text-sm">{benefit}</span>
-                    )}
-                    {editing && rule.benefits.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeBenefit(index, benefitIndex)}
-                        className="text-[var(--error)] hover:text-[var(--error-dark)] p-1"
-                      >
-                        <span className="material-icons text-sm">remove_circle</span>
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                {editing && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => addBenefit(index)}
-                    className="w-full"
-                  >
-                    <span className="material-icons mr-2">add</span>
-                    Add Benefit
-                  </Button>
-                )}
+              <div className="flex items-center justify-between">
+                <div className="h-4 bg-white/20 rounded w-32"></div>
+                <div className="h-4 bg-white/20 rounded w-16"></div>
               </div>
             </div>
           </div>
         ))}
       </div>
+    )
+  }
 
-      {editing && (
-        <div className="flex gap-3 mt-6">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1"
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Membership Configuration</h2>
+
+      <div className="flex flex-col gap-4">
+        {rules.map((rule, index) => (
+          <Card
+            key={rule.id}
+            className={`border-[var(--border)] ${
+              editingCard === index ? 'ring-2 ring-[var(--accent)]' : ''
+            }`}
+            style={{ borderLeftColor: rule.color, borderLeftWidth: editingCard === index ? '4px' : '3px' }}
           >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <span className="material-icons mr-2">save</span>
-                Save Changes
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            disabled={saving}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-        </div>
-      )}
-    </Card>
+            <div className="p-4">
+              {editingCard === index ? (
+                // Edit Mode
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: rule.color }}
+                      ></div>
+                      <Input
+                        value={rule.name}
+                        onChange={(e) => handleRuleChange(index, 'name', e.target.value)}
+                        className="font-semibold"
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingCard(null)}
+                      className="text-[var(--text-muted)] p-1"
+                    >
+                      <span className="material-icons">close</span>
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-[var(--text-muted)] block mb-1">Min Points</label>
+                      <Input
+                        type="number"
+                        value={rule.min_points}
+                        onChange={(e) => handleRuleChange(index, 'min_points', parseInt(e.target.value) || 0)}
+                        size="sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[var(--text-muted)] block mb-1">Max Points</label>
+                      <Input
+                        type="text"
+                        value={rule.max_points === null ? '∞' : rule.max_points}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          if (value === '∞') {
+                            handleRuleChange(index, 'max_points', null)
+                          } else {
+                            handleRuleChange(index, 'max_points', parseInt(value) || null)
+                          }
+                        }}
+                        size="sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[var(--text-muted)] block mb-1">Multiplier</label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        max="5.0"
+                        value={rule.multiplier}
+                        onChange={(e) => handleRuleChange(index, 'multiplier', parseFloat(e.target.value) || 1.0)}
+                        size="sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[var(--text-muted)] block mb-1">Color</label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="color"
+                          value={rule.color}
+                          onChange={(e) => handleRuleChange(index, 'color', e.target.value)}
+                          className="w-12 h-8 p-1"
+                        />
+                        <Input
+                          value={rule.color}
+                          onChange={(e) => handleRuleChange(index, 'color', e.target.value)}
+                          size="sm"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-[var(--text-muted)] block mb-2">Benefits</label>
+                    <div className="space-y-2">
+                      {rule.benefits.map((benefit, benefitIndex) => (
+                        <div key={benefitIndex} className="flex items-center gap-2">
+                          <span className="material-icons text-[var(--accent)] text-sm">check_circle</span>
+                          <Input
+                            value={benefit}
+                            onChange={(e) => handleBenefitChange(index, benefitIndex, e.target.value)}
+                            size="sm"
+                            className="flex-1"
+                          />
+                          {rule.benefits.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeBenefit(index, benefitIndex)}
+                              className="text-[var(--error)] hover:text-[var(--error-dark)] p-1"
+                            >
+                              <span className="material-icons text-sm">remove_circle</span>
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addBenefit(index)}
+                        className="w-full"
+                      >
+                        <span className="material-icons mr-2 text-sm">add</span>
+                        Add Benefit
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      onClick={() => handleSaveCard(index)}
+                      disabled={saving}
+                      className="flex-1"
+                      size="sm"
+                    >
+                      {saving ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-icons mr-2 text-sm">save</span>
+                          Save
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={saving}
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                // Preview Mode
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div
+                      className="w-4 h-4 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: rule.color }}
+                    ></div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-[var(--text-primary)] truncate">{rule.name}</h4>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {rule.min_points.toLocaleString()} - {rule.max_points === null ? '∞' : rule.max_points.toLocaleString()} pts
+                        </span>
+                        <Badge variant="secondary" size="sm">{rule.multiplier}x</Badge>
+                        <span className="text-xs text-[var(--text-secondary)]">
+                          {rule.benefits.length} benefits
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingCard(index)}
+                    className="flex-shrink-0"
+                  >
+                    <span className="material-icons mr-2 text-sm">edit</span>
+                    Edit
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
   )
 }

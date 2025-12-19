@@ -218,7 +218,7 @@ export function RewardAnalytics() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium text-[var(--text-primary)]">{item.customer_name}</span>
-                    <Badge variant={item.status === 'active' ? 'success' : 'default'}>
+                    <Badge variant={item.status === 'active' ? 'success' : 'secondary'}>
                       {item.status}
                     </Badge>
                   </div>
@@ -301,7 +301,7 @@ export function RewardAnalytics() {
                       <p><span className="text-[var(--text-secondary)]">Customer:</span> {voucherStatus.customer_name}</p>
                       <p><span className="text-[var(--text-secondary)]">Points Used:</span> {voucherStatus.points_used} pts</p>
                       <p><span className="text-[var(--text-secondary)]">Status:</span>
-                        <Badge variant={voucherStatus.status === 'active' ? 'success' : 'default'}>
+                        <Badge variant={voucherStatus.status === 'active' ? 'success' : 'secondary'}>
                           {voucherStatus.status}
                         </Badge>
                       </p>

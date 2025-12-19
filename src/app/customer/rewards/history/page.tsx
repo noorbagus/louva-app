@@ -52,9 +52,9 @@ export default function RedemptionHistoryPage() {
       case 'pending':
         return <Badge variant="warning">Pending</Badge>
       case 'expired':
-        return <Badge variant="danger">Expired</Badge>
+        return <Badge variant="error">Expired</Badge>
       default:
-        return <Badge variant="default">{status}</Badge>
+        return <Badge variant="primary">{status}</Badge>
     }
   }
 
