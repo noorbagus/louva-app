@@ -197,6 +197,28 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </Link>
+
+            <Link href="/admin/membership">
+              <div className="rounded-xl border duration-200 backdrop-blur-lg shadow-[0_2px_10px_var(--shadow)] p-4 bg-[var(--surface-light)] border-[var(--border)] hover:bg-[var(--surface-lighter)] transition-colors cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="material-icons text-[var(--accent)]">stars</span>
+                    <div>
+                      <h3 className="font-medium text-[var(--text-primary)]">Membership Levels</h3>
+                      <p className="text-sm text-[var(--text-muted)]">Configure tier benefits & multipliers</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-1">
+                      <div className="w-5 h-5 rounded-full border-2 border-[var(--surface-light)]" style={{ backgroundColor: '#CD7F32' }}></div>
+                      <div className="w-5 h-5 rounded-full border-2 border-[var(--surface-light)]" style={{ backgroundColor: '#C0C0C0' }}></div>
+                      <div className="w-5 h-5 rounded-full border-2 border-[var(--surface-light)]" style={{ backgroundColor: '#FFD700' }}></div>
+                    </div>
+                    <span className="material-icons text-[var(--text-muted)]">chevron_right</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
 
