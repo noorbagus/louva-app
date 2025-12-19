@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
           const currentLifetimePoints = customer.lifetime_points || customer.total_points || 0
 
           // Find matching membership level
-          const matchingLevel = membershipData.data.rules.find(rule => {
+          const matchingLevel = membershipData.data.rules.find((rule: any) => {
             const minPoints = rule.min_points
             const maxPoints = rule.max_points
             return currentLifetimePoints >= minPoints && (maxPoints === null || currentLifetimePoints <= maxPoints)
